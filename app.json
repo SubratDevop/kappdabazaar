@@ -1,0 +1,53 @@
+{
+  "expo": {
+    "name": "Kapda Bazaar",
+    "slug": "kapda-bazaar",
+    "version": "1.0.1",
+    "scheme": "kapda-bazaar",
+    "newArchEnabled": true,
+    "icon": "./assets/kapda_icon.png",
+    "assetBundlePatterns": [
+      "assets/images/*",
+      "assets/fonts/*",
+      "assets/*"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "baf96d08-e51c-414f-8864-35619dc7bbec"
+      }
+    },
+    "jsEngine": "hermes",
+    "orientation": "portrait",
+    "ios": {
+      "bundleIdentifier": "com.app.kapdabazaar",
+      "buildNumber": "7",
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "This app uses the camera to take pictures of clothes.",
+        "NSPhotoLibraryAddUsageDescription": "This app needs access to your photo library to save images.",
+        "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to select images.",
+        "NSLocationWhenInUseUsageDescription": "This app needs access to your location to provide location-based services.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "This app needs access to your location to provide location-based services.",
+        "NSLocationAlwaysUsageDescription": "This app needs access to your location to provide location-based services.",
+        "NSLocationUsageDescription": "This app needs access to your location to provide location-based services."
+      }
+    },
+    "android": {
+      "package": "com.app.kapdabazaar",
+      "versionCode": 16,
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ]
+    },
+    "plugins": [
+      "expo-font"
+    ],
+    "sdkVersion": "53.0.0",
+    "entryPoint": ".vscode\\exponentIndex.js"
+  },
+  "name": "kapda-bazaar"
+}
