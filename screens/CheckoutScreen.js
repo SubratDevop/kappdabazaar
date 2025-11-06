@@ -195,11 +195,12 @@ const CheckoutScreen = () => {
 
         const user = await AsyncStorage.getItem(STORAGE_KEYS.USER);
         const user_info = JSON.parse(user);
+
         var options = {
           description: 'kp order',
           image: `${URL_BASE}/uploads/products/kapda_icon.png`,
           currency: 'INR',
-          key: rzp_live_RcR9vHImxdfOVW,  //'rzp_test_RENAO3Apcy9Lcu' (testing ),
+          key: 'rzp_live_RcR9vHImxdfOVW',//'rzp_test_RENAO3Apcy9Lcu' (testing),
           amount: gstBreakdown.order_amount,
           name: 'Kapda Bazar',
           order_id: gstBreakdown.rz_orderid,//Replace this with an order_id created using Orders API.
