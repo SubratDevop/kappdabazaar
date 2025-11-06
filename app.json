@@ -34,7 +34,7 @@
     },
     "android": {
       "package": "com.app.kapdabazaar",
-      "versionCode": 17,
+      "versionCode": 19,
       "permissions": [
         "CAMERA",
         "READ_EXTERNAL_STORAGE",

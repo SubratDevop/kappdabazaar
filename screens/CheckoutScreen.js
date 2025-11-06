@@ -191,7 +191,7 @@ const CheckoutScreen = () => {
         total,
       };
       if (paymentMethod === "razorpay") {
-      console.log("PAYMENT METHOD :::::::", paymentMethod)
+        console.log("PAYMENT METHOD :::::::", paymentMethod)
 
         const user = await AsyncStorage.getItem(STORAGE_KEYS.USER);
         const user_info = JSON.parse(user);
@@ -199,7 +199,7 @@ const CheckoutScreen = () => {
           description: 'kp order',
           image: `${URL_BASE}/uploads/products/kapda_icon.png`,
           currency: 'INR',
-          key: 'rzp_test_RENAO3Apcy9Lcu',
+          key: rzp_live_RcR9vHImxdfOVW,  //'rzp_test_RENAO3Apcy9Lcu' (testing ),
           amount: gstBreakdown.order_amount,
           name: 'Kapda Bazar',
           order_id: gstBreakdown.rz_orderid,//Replace this with an order_id created using Orders API.
@@ -240,7 +240,7 @@ const CheckoutScreen = () => {
         <Card.Content style={styles.gstContent}>
           <View style={styles.gstHeader}>
             <View style={styles.gstTitleContainer}>
-              <MaterialIcons name="receipt" size={20} color= {colors.navyBlue} />
+              <MaterialIcons name="receipt" size={20} color={colors.navyBlue} />
               <Text style={styles.gstTitle}>Tax Breakdown</Text>
             </View>
             <Chip
@@ -272,7 +272,7 @@ const CheckoutScreen = () => {
                   IGST ({gstBreakdown.data.taxRate}%)
                 </Text>
                 <Text style={styles.gstValue}>
-                  ₹{gstBreakdown.data.igstAmount?.toFixed(2)}
+                  ₹{ak.data.igstAmount?.toFixed(2)}
                 </Text>
               </View>
             ) : (
@@ -346,7 +346,7 @@ const CheckoutScreen = () => {
           <Card style={styles.orderSummaryCard}>
             <Card.Content style={styles.orderSummaryContent}>
               <View style={styles.orderSummaryHeader}>
-                <MaterialIcons name="shopping-bag" size={20} color= {colors.navyBlue} />
+                <MaterialIcons name="shopping-bag" size={20} color={colors.navyBlue} />
                 <Text style={styles.orderSummaryTitle}>Order Summary</Text>
               </View>
 
@@ -371,7 +371,7 @@ const CheckoutScreen = () => {
           <Card style={styles.sectionCard}>
             <Card.Content style={styles.sectionContent}>
               <View style={styles.sectionHeader}>
-                <MaterialIcons name="location-on" size={20} color= {colors.navyBlue} />
+                <MaterialIcons name="location-on" size={20} color={colors.navyBlue} />
                 <Text style={styles.sectionTitle}>Delivery Address</Text>
               </View>
 
@@ -416,7 +416,7 @@ const CheckoutScreen = () => {
                     placeholder="State"
                     value={address.state}
                     onChangeText={(text) =>
-                      setAddressMaterialIconsDeliver({ ...address, state: text })
+                      setAddress({ ...address, state: text })
                     }
                     style={styles.halfInput}
                     icon="map"
@@ -440,7 +440,7 @@ const CheckoutScreen = () => {
           <Card style={styles.sectionCard}>
             <Card.Content style={styles.sectionContent}>
               <View style={styles.sectionHeader}>
-                <MaterialIcons name="receipt-long" size={20} color= {colors.navyBlue} />
+                <MaterialIcons name="receipt-long" size={20} color={colors.navyBlue} />
                 <Text style={styles.sectionTitle}>Price Details</Text>
               </View>
 
@@ -490,7 +490,7 @@ const CheckoutScreen = () => {
           <Card style={styles.sectionCard}>
             <Card.Content style={styles.sectionContent}>
               <View style={styles.sectionHeader}>
-                <MaterialIcons name="payment" size={20} color= {colors.navyBlue} />
+                <MaterialIcons name="payment" size={20} color={colors.navyBlue} />
                 <Text style={styles.sectionTitle}>Payment Method</Text>
               </View>
 
@@ -639,7 +639,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   disclaimerInfo: {
-    marginTop : 8,
+    marginTop: 8,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#B2222215',
@@ -647,7 +647,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 100,
   },
-  
+
   disclaimerText: {
     marginLeft: 8,
     fontSize: 14,
