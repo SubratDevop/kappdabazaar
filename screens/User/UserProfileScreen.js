@@ -2,7 +2,8 @@ import { Feather, MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
-import { Linking, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { Linking, Modal, Image, ScrollView, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+
 import { Button, Card, Divider } from 'react-native-paper';
 import { API_BASE } from '../../constants/exports';
 import { width } from '../../constants/helpers';
@@ -16,7 +17,7 @@ const UserProfileScreen = ({ navigation }) => {
     const [orders, setOrders] = useState("");
     const [orderAmount, setOrderAmount] = useState("");
     const [customerSupprtModalVisible, setcustomerSupprtModalVisible] = useState(false);
-
+    const [modalVisible, setModalVisible] = useState(false);
     const [userStats, setUserStats] = useState({
         totalOrders: 0,
         totalSpent: 0,
@@ -57,6 +58,47 @@ const UserProfileScreen = ({ navigation }) => {
         fetchUserInfo();
         fetchOrders();
     }, []);
+
+    // delete account modal
+    const DeleteAccountModal = ({ visible, onClose, onConfirm }) => {
+    return (
+        <Modal
+            transparent
+            animationType="fade"
+            visible={visible}
+            onRequestClose={onClose}
+        >
+            <View style={styles.overlayCentered}>
+                <View style={styles.deleteModalBox}>
+                    {/* 🗑️ Trash Icon */}
+                    <Image
+                        source={{
+                            uri: "https://cdn-icons-png.flaticon.com/512/1214/1214428.png", // red trash icon
+                        }}
+                        style={styles.deleteIcon}
+                    />
+
+                    {/* Confirmation Text */}
+                    <Text style={styles.deleteTitle}>
+                        Are you sure you want to delete your account?
+                    </Text>
+
+                    {/* Buttons */}
+                    <TouchableOpacity
+                        style={styles.deleteButtonConfirm}
+                        onPress={onConfirm}
+                    >
+                        <Text style={styles.deleteButtonText}>Yes, Delete</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity onPress={onClose}>
+                        <Text style={styles.keepButtonText}>Keep Account</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+        </Modal>
+    );
+};
 
 
     const formatIndianCurrency = (amount) => {
@@ -123,6 +165,11 @@ const UserProfileScreen = ({ navigation }) => {
     // Function to open Gmail
     const handleMail = () => {
         Linking.openURL("mailto:kapdabazaar1989@gmail.com");
+    };
+
+    const handleDelete = () => {
+        console.log("Account deleted successfully");
+        setModalVisible(false);
     };
 
 
@@ -322,12 +369,13 @@ const UserProfileScreen = ({ navigation }) => {
                         <Text style={styles.logoutText}>Log out</Text>
                     </View>
                     <View>
-                        <MaterialIcons name="logout" size={22} color="#FF2626" />
+                        <MaterialIcons name="logout" size={22} />
                     </View>
                 </TouchableOpacity>
             </View>
 
-            <View style={{ marginVertical: 10 }} />
+            <View style={{ marginVertical: 5 }} />
+
 
             {/* Logout Confirmation Modal */}
             <Modal
@@ -356,6 +404,29 @@ const UserProfileScreen = ({ navigation }) => {
                     </View>
                 </View>
             </Modal>
+
+            <DeleteAccountModal
+                visible={modalVisible}
+                onClose={() => setModalVisible(false)}
+                onConfirm={handleDelete}
+            />
+
+            {/* Delete account Section */}
+            <View style={styles.deleteAccountContainer}>
+                <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.logoutButton}>
+                    <View style={{ paddingLeft: 5 }}>
+                        <Text style={styles.deleteAccountext}>Delete Account</Text>
+                    </View>
+                    <View>
+                        <MaterialIcons name="delete" size={22} color="#FF2626" />
+                    </View>
+                </TouchableOpacity>
+            </View>
+
+            <View style={{ marginVertical: 10 }} />
+
+
+
         </ScrollView>
     )
 }
@@ -363,6 +434,60 @@ const UserProfileScreen = ({ navigation }) => {
 export default UserProfileScreen
 
 const styles = StyleSheet.create({
+
+overlayCentered: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.4)",
+},
+deleteModalBox: {
+    width: width * 0.8,
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 30,
+    paddingHorizontal: 20,
+    elevation: 10,
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+},
+deleteIcon: {
+    width: 60,
+    height: 60,
+    tintColor: "#ff4d4f",
+    marginBottom: 15,
+},
+deleteTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    textAlign: "center",
+    color: "#111",
+    marginBottom: 25,
+    lineHeight: 22,
+},
+deleteButtonConfirm: {
+    backgroundColor: "#ff4d4f",
+    borderRadius: 25,
+    paddingVertical: 10,
+    width: "75%",
+    alignItems: "center",
+    marginBottom: 12,
+},
+deleteButtonText: {
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 15,
+},
+keepButtonText: {
+    color: "#ff4d4f",
+    fontWeight: "600",
+    fontSize: 15,
+},
+
+
     profileHeader: {
         display: "flex",
         flexDirection: "row",
@@ -540,6 +665,18 @@ const styles = StyleSheet.create({
         elevation: 0.2,
         borderColor: "#ccc"
     },
+    deleteAccountContainer: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        width: "100%",
+        backgroundColor: "#ff4d4f20", // 🔴 soft red accent (rgba-ish)
+        paddingHorizontal: 8,
+        paddingVertical: 10,
+        borderRadius: 5,
+        marginTop: 10,
+    },
+
     logoutButton: {
         display: "flex",
         flexDirection: "row",
@@ -550,9 +687,15 @@ const styles = StyleSheet.create({
     logoutText: {
         fontSize: 16,
         fontWeight: "500",
-        color: "#FF2626",
         paddingVertical: 5,
     },
+    deleteAccountext: {
+        fontSize: 16,
+        fontWeight: "600",
+        color: "#ff4d4f",
+        paddingVertical: 5,
+    },
+
     modalOverlay: {
         flex: 1,
         justifyContent: "center",

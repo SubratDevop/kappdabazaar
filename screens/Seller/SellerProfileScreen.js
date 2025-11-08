@@ -4,16 +4,20 @@ import {
 } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
 import {
+  Linking,
+  Image,
   Modal,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from "react-native";
 import { Button } from "react-native-paper";
 import { useAuthStore } from "../../store/useAuthStore";
 import getAsyncStorageFn from "../../utils/constants";
+import { width } from '../../constants/helpers';
 
 
 const SellerProfileScreen = ({ route, navigation }) => {
@@ -21,6 +25,8 @@ const SellerProfileScreen = ({ route, navigation }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
+      const [modalVisible, setModalVisible] = useState(false);
+  
 
   const { clearStorage } = useAuthStore();
 
@@ -43,6 +49,54 @@ const SellerProfileScreen = ({ route, navigation }) => {
   const handleMenuPress = (path) => {
     navigation.navigate(path);
   };
+
+
+      // delete account modal
+      const DeleteAccountModal = ({ visible, onClose, onConfirm }) => {
+      return (
+          <Modal
+              transparent
+              animationType="fade"
+              visible={visible}
+              onRequestClose={onClose}
+          >
+              <View style={styles.overlayCentered}>
+                  <View style={styles.deleteModalBox}>
+                      {/* 🗑️ Trash Icon */}
+                      <Image
+                          source={{
+                              uri: "https://cdn-icons-png.flaticon.com/512/1214/1214428.png", // red trash icon
+                          }}
+                          style={styles.deleteIcon}
+                      />
+  
+                      {/* Confirmation Text */}
+                      <Text style={styles.deleteTitle}>
+                          Are you sure you want to delete your account?
+                      </Text>
+  
+                      {/* Buttons */}
+                      <TouchableOpacity
+                          style={styles.deleteButtonConfirm}
+                          onPress={onConfirm}
+                      >
+                          <Text style={styles.deleteButtonText}>Yes, Delete</Text>
+                      </TouchableOpacity>
+  
+                      <TouchableOpacity onPress={onClose}>
+                          <Text style={styles.keepButtonText}>Keep Account</Text>
+                      </TouchableOpacity>
+                  </View>
+              </View>
+          </Modal>
+      );
+  };
+
+      const handleDelete = () => {
+        console.log("Account deleted successfully");
+        setModalVisible(false);
+    };
+
 
   if (isLoading) {
     return (
@@ -106,7 +160,6 @@ const SellerProfileScreen = ({ route, navigation }) => {
               style={{
                 fontSize: 16,
                 fontWeight: "500",
-                color: "#FF2626",
                 paddingVertical: 5,
               }}
             >
@@ -114,7 +167,7 @@ const SellerProfileScreen = ({ route, navigation }) => {
             </Text>
           </View>
           <View>
-            <MaterialIcons name="logout" size={22} color="#FF2626" />
+            <MaterialIcons name="logout" size={22}/>
           </View>
         </TouchableOpacity>
       </View>
@@ -153,11 +206,110 @@ const SellerProfileScreen = ({ route, navigation }) => {
           </View>
         </View>
       </Modal>
+    
+    
+    <DeleteAccountModal
+                    visible={modalVisible}
+                    onClose={() => setModalVisible(false)}
+                    onConfirm={handleDelete}
+                />
+    
+                {/* Delete account Section */}
+                <View style={styles.deleteAccountContainer}>
+                    <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.logoutButton}>
+                        <View style={{ paddingLeft: 5 }}>
+                            <Text style={styles.deleteAccountext}>Delete Account</Text>
+                        </View>
+                        <View>
+                            <MaterialIcons name="delete" size={22} color="#FF2626" />
+                        </View>
+                    </TouchableOpacity>
+                </View>
+    
+                <View style={{ marginVertical: 10 }} />
+    
+    
+    
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
+
+
+
+overlayCentered: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.4)",
+},
+deleteModalBox: {
+    width: width * 0.8,
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 30,
+    paddingHorizontal: 20,
+    elevation: 10,
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+},
+deleteIcon: {
+    width: 60,
+    height: 60,
+    tintColor: "#ff4d4f",
+    marginBottom: 15,
+},
+deleteTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    textAlign: "center",
+    color: "#111",
+    marginBottom: 25,
+    lineHeight: 22,
+},
+deleteButtonConfirm: {
+    backgroundColor: "#ff4d4f",
+    borderRadius: 25,
+    paddingVertical: 10,
+    width: "75%",
+    alignItems: "center",
+    marginBottom: 12,
+},
+deleteButtonText: {
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 15,
+},
+keepButtonText: {
+    color: "#ff4d4f",
+    fontWeight: "600",
+    fontSize: 15,
+},
+
+
+  deleteAccountContainer: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        width: "100%",
+        backgroundColor: "#ff4d4f20", // 🔴 soft red accent (rgba-ish)
+        paddingHorizontal: 8,
+        paddingVertical: 10,
+        borderRadius: 5,
+        marginTop: 10,
+    },
+
+        deleteAccountext: {
+        fontSize: 16,
+        fontWeight: "600",
+        color: "#ff4d4f",
+        paddingVertical: 5,
+    },
+
   logoutContainer: {
     display: "flex",
     flexDirection: "row",
@@ -179,8 +331,7 @@ const styles = StyleSheet.create({
   logoutText: {
     fontSize: 16,
     fontWeight: "500",
-    color: "#FF2626",
-    paddingVertical: 5,
+  paddingVertical: 5,
   },
   statsContainer: {
     flexDirection: "row",
