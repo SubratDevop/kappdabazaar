@@ -211,18 +211,45 @@ const CheckoutScreen = () => {
           },
           theme: { color: '#FF6B6B' }
         };
-        RazorpayCheckout.open(options).then((data) => {
-          // handle success
-          console.log(`Success: ${data.razorpay_payment_id}`);
 
-        }).catch((error) => {
-          alert(`Error: ${error.code} | ${error.description}`);
-          return false;
-        });
-        const orderResponse = await placeOrder(orderData);
-        navigation.navigate("OrderConfirmation", orderData);
+        // RazorpayCheckout.open(options).then(async ( data) => {
+        //   // handle success
+        //   console.log(`Success: ${data.razorpay_payment_id}`);
+
+        // }).catch((error) => {
+        //   alert(`Error: ${error.code} | ${error.description}`);
+        //   return false;
+        // });
+
+        RazorpayCheckout.open(options)
+          .then( (data) => {
+            console.log(`Payment Success: ${data.razorpay_payment_id}`);
+            orderData.paymentId = data.razorpay_payment_id;
+            orderData.paymentStatus = 'success';
+
+
+
+            console.log("Placing order with data:", orderData);
+            const orderResponse =  placeOrder(orderData);
+            console.log("Order placed successfully:", orderData);
+
+            // Navigate to confirmation
+            // navigation.reset({
+            //   index: 0,
+            //   routes: [{ name: 'OrderConfirmation', params: { orderData } }],
+            // });
+            console.log(`Order cretaed Successfully .........`);
+            navigation.navigate("OrderConfirmation", orderData);
+
+          })
+          .catch((error) => {
+            alert(`Payment Failed: ${error.description || 'Please try again'}`);
+          });
+        // const orderResponse = await placeOrder(orderData);
+        // navigation.navigate("OrderConfirmation", orderData);
       } else {
         // Handle other payment methods
+        console.log("proceesd to order confirmation screen");
         const orderResponse = await placeOrder(orderData);
         navigation.navigate("OrderConfirmation", orderData);
       }

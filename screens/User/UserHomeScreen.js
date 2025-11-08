@@ -25,7 +25,6 @@ const UserHomeScreen = ({ navigation }) => {
         // Fetch companies
         Promise.resolve(fetchAllCompanies())
             .finally(() => setLoadingCompanies(false));
-
         // Fetch products
         Promise.resolve(getAllProducts())
             .finally(() => setLoadingProducts(false));
@@ -160,7 +159,7 @@ const UserHomeScreen = ({ navigation }) => {
                             colors={["#F5F5F5", "#F8FAFC"]} // Red fading to a lighter red
                             style={{ flex: 1 }} // Ensures it covers the full container
                         >
-                            <Text style={[styles.sectionTitle, { paddingHorizontal: 5,  paddingTop: 8, paddingBottom: 3,backgroundColor: "#ff634750", color: "#132f56" }]}>Latest Arrivals</Text>
+                            <Text style={[styles.sectionTitle, { paddingHorizontal: 5, paddingTop: 8, paddingBottom: 3, backgroundColor: "#ff634750", color: "#132f56" }]}>Latest Arrivals</Text>
                             <View style={styles.lattestContent}>
                                 <FlatList
                                     ref={latestRef}
@@ -179,7 +178,7 @@ const UserHomeScreen = ({ navigation }) => {
                     {!loadingProducts && allProducts && allProducts?.length >= 5 && <LinearGradient
                         colors={["#F5F5F5", "#F8FAFC"]} // Dark purple to light purple
                         style={{ flex: 1 }}>
-                        <Text style={[styles.sectionTitle, { paddingHorizontal: 5,  paddingTop: 8, paddingBottom: 3,backgroundColor: "#E6E6FA", color: "#132f56" }]}>Trending Fabrics</Text>
+                        <Text style={[styles.sectionTitle, { paddingHorizontal: 5, paddingTop: 8, paddingBottom: 3, backgroundColor: "#E6E6FA", color: "#132f56" }]}>Trending Fabrics</Text>
                         <View style={styles.trendingContent}>
                             <FlatList
                                 ref={trendingRef}
@@ -199,7 +198,7 @@ const UserHomeScreen = ({ navigation }) => {
                         colors={["#F5F5F5", "#F8FAFC"]} // Dark purple to light purple
                         style={{ flex: 1 }}
                     >
-                        <Text style={[styles.sectionTitle, { paddingHorizontal: 5,  paddingTop: 8, paddingBottom: 3,backgroundColor: "#D2F8D290", color: "#132f56" }]}>Featured</Text>
+                        <Text style={[styles.sectionTitle, { paddingHorizontal: 5, paddingTop: 8, paddingBottom: 3, backgroundColor: "#D2F8D290", color: "#132f56" }]}>Featured</Text>
                         <View style={styles.featuredContent}>
                             <FlatList
                                 ref={featuredRef}
@@ -222,7 +221,9 @@ const UserHomeScreen = ({ navigation }) => {
                         colors={["#F5F5F5", "#F8FAFC"]}
                         style={{ flex: 1 }}
                     >
-                        {allCompanies?.map((company, idx) => (
+                        {allCompanies?.filter(company =>
+                            company?.company_user?.status == "approved"
+                        ).map((company, idx) => (
                             <View key={idx} style={styles.content}>
                                 <View style={{ display: "flex", flexDirection: "row", width: "100%", justifyContent: "space-between", backgroundColor: "#ff6347", alignItems: "center", paddingHorizontal: 4, borderRadius: 3, marginBottom: 4 }}>
                                     <Text

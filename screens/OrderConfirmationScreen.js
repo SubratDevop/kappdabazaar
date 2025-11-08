@@ -11,7 +11,7 @@ const OrderConfirmationScreen = ({ navigation, route }) => {
 
     useEffect(() => {
         fetchOrderStatus();
-        
+
     }, []);
 
     const fetchOrderStatus = async () => {
@@ -57,18 +57,18 @@ const OrderConfirmationScreen = ({ navigation, route }) => {
                     <View style={styles.detailsCard}>
                         <View style={styles.detailRow}>
                             <Text style={styles.detailLabel}>Transaction ID</Text>
-                            <Text style={styles.detailValue}>{payment?.transaction_id}</Text>
+                            <Text style={styles.detailValue}>{orderNumber}</Text>
                         </View>
                         <View style={styles.detailRow}>
                             <Text style={styles.detailLabel}>Payment Method</Text>
                             <Text style={styles.detailValue}>
-                                {paymentMethod === 'phonepe' ? 'PhonePe' : 'Cash on Delivery'}
+                                {paymentMethod === 'razorpay' ? 'Razorpay' : 'Cash on Delivery'}
                             </Text>
                         </View>
                         <View style={styles.detailRow}>
                             <Text style={styles.detailLabel}>Payment Status</Text>
-                            <Text style={[styles.detailValue, { color: payment?.payment_status === 'completed' ? '#4CAF50' : '#FFA500' }]}>
-                                {payment?.payment_status?.toUpperCase()}
+                            <Text style={[styles.detailValue, { color:  '#4CAF50' }]}>
+                                Completed
                             </Text>
                         </View>
                     </View>
@@ -163,19 +163,25 @@ const OrderConfirmationScreen = ({ navigation, route }) => {
             <View style={styles.bottomBar}>
                 <Button
                     mode="outlined"
-                    onPress={() => navigation.navigate('MyOrders')}
+                    onPress={() => navigation.navigate('OrdersScreen')}
                     style={styles.button}
                 >
                     View Orders
                 </Button>
                 <Button
                     mode="contained"
-                    onPress={() => navigation.navigate('Home')}
+                    onPress={() =>
+                        navigation.reset({
+                            index: 0,
+                            routes: [{ name: 'UserBottomTabs', params: { screen: 'Home' } }],
+                        })
+                    }
                     style={[styles.button, styles.primaryButton]}
                     textColor="#fff"
                 >
                     Continue Shopping
                 </Button>
+
             </View>
         </View>
     );

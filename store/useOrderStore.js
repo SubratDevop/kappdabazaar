@@ -36,16 +36,16 @@ const useOrderStore = create((set, get) => ({
         try {
             const token = await AsyncStorage.getItem(STORAGE_KEYS.TOKEN);
 
-            set({ loading: true, error: null });
+            // set({ loading: true, error: null });
             const response = await axios.post(`${API_BASE}/orders`, orderData, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
             });
-            set({ loading: false });
+            // set({ loading: false });
             return response.data;
         } catch (error) {
-            set({ error: error.message, loading: false });
+            // set({ error: error.message, loading: false });
             throw error;
         }
     },

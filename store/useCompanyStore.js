@@ -47,7 +47,7 @@ export const useCompanyStore = create((set) => ({
                     Authorization: `Bearer ${token}`,
                 }
             });
-
+            
             set({ allCompanies: resp.data.companies || [] });
         } catch (error) {
             console.error("Failed to fetch companies", error);
