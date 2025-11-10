@@ -254,7 +254,10 @@ const OrderMonitoringScreen = ({ navigation }) => {
                 <View style={styles.orderHeader}>
                   <View>
                     <Text style={styles.orderTitle}>
-                      {order.product.name}
+                      {
+                      // order.product.name
+                       order.product?.name || order.product?.product_name || "Unknown Product"
+                      }
                     </Text>
 
                     <Text style={styles.orderDate}>

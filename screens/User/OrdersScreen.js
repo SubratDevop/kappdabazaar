@@ -102,7 +102,7 @@ const OrdersScreen = ({ navigation }) => {
 
                 <View style={styles.orderDetails}>
                     <Text style={styles.productName} numberOfLines={2}>
-                        {item.product.name || 'Product Name'}
+                        {item.product  !== null ? item.product.name : 'Product Name'}
                     </Text>
                     <Text style={styles.orderQuantity}>
                         Quantity: {item.quantity}

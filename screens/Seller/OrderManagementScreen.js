@@ -170,8 +170,8 @@ const OrderManagementScreen = ({ navigation }) => {
 
     // Filter orders based on search and status
     const filteredOrders = orders.filter(order => {
-        const matchesSearch = order.product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            order.id.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesSearch = order.product === null ? "Unknown product" : (order.product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            order.id.toLowerCase().includes(searchQuery.toLowerCase()));
 
         const matchesStatus = selectedStatus === 'all' || order.orderStatus === selectedStatus;
 
@@ -228,7 +228,7 @@ const OrderManagementScreen = ({ navigation }) => {
                 </View>
 
                 <View style={styles.orderDetails}>
-                    <Text style={styles.productName}>{order.product.name}</Text>
+                    <Text style={styles.productName}>{order.product === null ? "Unknown product" : order.product.name}</Text>
                     <Text style={styles.quantity}>Quantity: {order.quantity} meters</Text>
                     <Text style={styles.amount}>Buyer: {order.user.name}</Text>
                     <Text style={styles.amount}>Total: ₹{order.finalAmount}</Text>
