@@ -2,6 +2,7 @@ import { Feather, Fontisto, MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
 import React, { useEffect, useState } from "react";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { Modal, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Button, Checkbox, TextInput } from "react-native-paper";
 import { colors } from "../constants/exports";
@@ -16,11 +17,13 @@ const SignInScreen = ({ route }) => {
 
     const [agree, setAgree] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
+    const [showDatePicker, setShowDatePicker] = useState(false);
 
     const [data, setData] = useState({
         name: "",
         phone_number: "",
         email: "",
+        dob: "",
         password: "",
     });
 
@@ -74,6 +77,25 @@ const SignInScreen = ({ route }) => {
             valid = false;
         }
 
+        // DOB must be 18 years old
+        if (!data.dob) {
+            newErrors.dob = "Select your date of birth";
+            valid = false;
+        } else {
+            const today = new Date();
+            const minDate = new Date(
+                today.getFullYear() - 18,
+                today.getMonth(),
+                today.getDate()
+            );
+            const selectedDate = new Date(data.dob);
+
+            if (selectedDate > minDate) {
+                newErrors.dob = "You must be at least 18 years old";
+                valid = false;
+            }
+        }
+
         setErrors(newErrors);
         return valid;
     };
@@ -125,6 +147,7 @@ const SignInScreen = ({ route }) => {
                 { label: "Full Name", icon: <MaterialIcons name="perm-contact-cal" size={24} color={colors.navyBlue} />, field: "name", placeholder: "Full Name", keyboardType: "default" },
                 { label: "Mobile No.", icon: <Feather name="phone" size={24} color={colors.navyBlue} />, field: "phone_number", placeholder: "e.g., 9999999999", keyboardType: "number-pad" },
                 { label: "Email", icon: <Fontisto name="email" size={24} color={colors.navyBlue} />, field: "email", placeholder: "Enter your email", keyboardType: "email-address" },
+
             ].map(({ label, icon, field, placeholder, keyboardType }) => (
                 <View key={field} style={styles.inputWrapper}>
                     <Text style={styles.label}>{label}</Text>
@@ -165,6 +188,63 @@ const SignInScreen = ({ route }) => {
                 </View>
                 {errors.password && <Text style={styles.error}>{errors.password}</Text>}
             </View>
+            {/* DOB Field */}
+            <View style={styles.inputWrapper}>
+                <Text style={styles.label}>Date of Birth</Text>
+
+                <TouchableOpacity
+                    onPress={() => setShowDatePicker(true)}
+                    style={[styles.passwordContainer, {
+                        borderBottomWidth: 1,
+                        borderColor: "#132f56",
+                    }]}
+                >
+                    <Feather
+                        name="calendar"
+                        size={24}
+                        color={colors.navyBlue}
+                        style={{ marginRight: 20, marginTop: 10, marginBottom: 20 }}
+                    />
+                    <Text
+                        style={{
+                            fontSize: 16,
+                            marginTop: 10,
+                            marginBottom: 20,
+                            fontWeight: "lighter",
+                            color: "#132f56",       // same placeholder color
+                            opacity: 1,            // same placeholder opacity
+                        }}
+                    >
+                        {data.dob ? data.dob : "Select your date of birth"}
+                    </Text>
+                </TouchableOpacity>
+
+                {errors.dob && <Text style={styles.error}>{errors.dob}</Text>}
+
+                {showDatePicker && (
+                    <DateTimePicker
+                        value={new Date()}
+                        mode="date"
+                        display="default"
+                        maximumDate={new Date(
+                            new Date().getFullYear() - 18,
+                            new Date().getMonth(),
+                            new Date().getDate()
+                        )}
+                        onChange={(event, selectedDate) => {
+                            setShowDatePicker(false);
+                            if (selectedDate) {
+                                const formatted = selectedDate.toISOString().split("T")[0];
+                                setData(prev => ({ ...prev, dob: formatted }));
+                            }
+                        }}
+                        textColor="#132F56"
+        dividerColor="#132F56"
+        fadeToColor="none"
+                    />
+                )}
+            </View>
+
 
             <View style={{ flexDirection: "row", alignItems: "center", marginTop: 10 }}>
                 <Checkbox
