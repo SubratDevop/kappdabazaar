@@ -4,6 +4,8 @@ import { Alert, Modal, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Button, Card, Chip, IconButton, Menu, Searchbar, TextInput } from 'react-native-paper';
 import { useAuthStore } from '../../store/useAuthStore';
 import useOrderStore from '../../store/useOrderStore';
+import { format } from "date-fns";
+
 
 const OrderManagementScreen = ({ navigation }) => {
     const { user } = useAuthStore();
@@ -228,6 +230,9 @@ const OrderManagementScreen = ({ navigation }) => {
                 </View>
 
                 <View style={styles.orderDetails}>
+                    <Text style={styles.orderDate}>
+                        {format(new Date(order.createdAt), "dd-MMM-yyyy, hh:mm a")}
+                    </Text>
                     <Text style={styles.productName}>{order.product === null ? "Unknown product" : order.product.name}</Text>
                     <Text style={styles.quantity}>Quantity: {order.quantity} meters</Text>
                     <Text style={styles.amount}>Buyer: {order.user.name}</Text>
@@ -343,7 +348,7 @@ const OrderManagementScreen = ({ navigation }) => {
                         Cancelled
                     </Chip>
                 </ScrollView>
-           
+
             </View>
 
             <ScrollView style={styles.scrollView}>

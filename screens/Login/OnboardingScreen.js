@@ -18,7 +18,7 @@ import { colors, themeInput } from "../../constants/exports";
 import { width } from "../../constants/helpers";
 import { useAuthStore } from "../../store/useAuthStore";
 
-const OnboardingScreen = ({ route} ) => {
+const OnboardingScreen = ({ route }) => {
     const navigation = useNavigation();
     const { role } = route.params; // user or seller
 
@@ -82,6 +82,10 @@ const OnboardingScreen = ({ route} ) => {
 
         if (!isValidPAN(pan_number)) {
             return Alert.alert("Validation Error", "Invalid PAN number format.");
+        }
+
+        if (!companyDetails.gst_certificate_url) {
+            return Alert.alert("Validation Error", "Please upload your GST Certificate.");
         }
 
 
