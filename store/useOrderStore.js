@@ -3,6 +3,7 @@ import axios from 'axios';
 import { create } from 'zustand';
 import { API_BASE } from '../constants/exports';
 import { STORAGE_KEYS } from '../store/useAuthStore';
+import * as ImageManipulator from 'expo-image-manipulator';
 
 const useOrderStore = create((set, get) => ({
     orders: [],
@@ -51,42 +52,57 @@ const useOrderStore = create((set, get) => ({
     },
 
     // Update order status
-    updateOrderStatus: async (orderId, status, lrNumber, lrFile) => {
-        try {
 
+    updateOrderStatus: async (orderId, status, lrNumber, lrFile , vehicleDetails) => {
+        try {
             console.log("UPLOAD FILE ::::", lrFile);
+
             const token = await AsyncStorage.getItem(STORAGE_KEYS.TOKEN);
-            const payload = new FormData();
+            let payload = new FormData();
             set({ loading: true, error: null });
-            payload = {
-                status,
-                ...(lrNumber && { lr_number: lrNumber })
-            };
 
             payload.append("status", status);
             payload.append("lr_number", lrNumber);
-
+            payload.append("vehicleNumber", vehicleDetails);
 
 
             if (lrFile && lrFile.startsWith("file")) {
-                const filename = lrFile.split("/").pop();
+
+                // ✅ COMPRESS IMAGE HERE
+                const compressedImage = await ImageManipulator.manipulateAsync(
+                    lrFile,
+                    [{ resize: { width: 1000 } }], // reduce resolution
+                    {
+                        compress: 0.5,               // 0.1 = very small, 1 = original
+                        format: ImageManipulator.SaveFormat.JPEG
+                    }
+                );
+
+                const filename = compressedImage.uri.split("/").pop();
                 const match = /\.(\w+)$/.exec(filename ?? '');
                 const ext = match ? match[1] : "jpg";
 
-                formData.append("lr_file", {
-                    uri: lrFile,
+                payload.append("lr_file", {
+                    uri: compressedImage.uri,
                     name: filename,
                     type: `image/${ext}`,
                 });
             }
 
-            const response = await axios.put(`${API_BASE}/orders/update/${orderId}`, payload, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
+            const response = await axios.post(
+                `${API_BASE}/orders/update/${orderId}`,
+                payload,
+                {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                        'Authorization': `Bearer ${token}`
+                    }
                 }
-            });
+            );
+
             set({ loading: false });
             return response.data;
+
         } catch (error) {
             set({ error: error.message, loading: false });
             throw error;

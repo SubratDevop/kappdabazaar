@@ -1,10 +1,14 @@
 import * as ImagePicker from "expo-image-picker";
 import React, { useEffect, useState } from 'react';
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
 import { Alert, Modal, ScrollView, StyleSheet, Text, View, Image } from 'react-native';
 import { Button, Card, Chip, IconButton, Menu, Searchbar, TextInput } from 'react-native-paper';
 import { useAuthStore } from '../../store/useAuthStore';
 import useOrderStore from '../../store/useOrderStore';
 import { format } from "date-fns";
+import { URL_BASE } from '../../constants/exports';
+
 
 
 const OrderManagementScreen = ({ navigation }) => {
@@ -51,7 +55,7 @@ const OrderManagementScreen = ({ navigation }) => {
 
     const handleUpdateStatus = async (orderId, status) => {
         try {
-            await updateOrderStatus(orderId, status, status === 'DISPATCHED' ? lrNumber : null, uploadedFile);
+            await updateOrderStatus(orderId, status, status === 'DISPATCHED' ? lrNumber : null, uploadedFile , vehicleDetails);
             Alert.alert('Success', 'Order status updated successfully',
                 [
                     {
@@ -173,6 +177,30 @@ const OrderManagementScreen = ({ navigation }) => {
         }
     };
 
+    // Download LR
+    const downloadLRFile = async (fileUrl) => {
+        try {
+            if (!fileUrl) {
+                Alert.alert("Error", "LR file not available");
+                return;
+            }
+
+            const fileName = fileUrl.split('/').pop();
+            const fileUri = FileSystem.documentDirectory + fileName;
+
+            const { uri } = await FileSystem.downloadAsync(fileUrl, fileUri);
+
+            console.log("Downloaded to:", uri);
+
+            // Open share / save dialog
+            await Sharing.shareAsync(uri);
+
+        } catch (error) {
+            console.error("Download failed:", error);
+            Alert.alert("Error", "Failed to download LR file");
+        }
+    };
+
     // Filter orders based on search and status
     const filteredOrders = orders.filter(order => {
         const matchesSearch = order.product === null ? "Unknown product" : (order.product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -205,10 +233,10 @@ const OrderManagementScreen = ({ navigation }) => {
                             <Menu.Item
                                 onPress={() => {
                                     setMenuVisible({ ...menuVisible, [order.id]: false });
-                                    handleViewOrderDetails(order);
+                                    downloadLRFile(`${URL_BASE}/${order.LRfile}`);  // 👈 API LR file URL
                                 }}
-                                title="View Details"
-                                leadingIcon="eye"
+                                title="Download LR"
+                                leadingIcon="download"
                             />
                             <Menu.Item
                                 onPress={() => {
