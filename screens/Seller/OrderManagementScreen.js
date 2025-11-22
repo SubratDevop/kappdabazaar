@@ -1,6 +1,6 @@
 import * as ImagePicker from "expo-image-picker";
 import React, { useEffect, useState } from 'react';
-import { Alert, Modal, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Modal, ScrollView, StyleSheet, Text, View, Image } from 'react-native';
 import { Button, Card, Chip, IconButton, Menu, Searchbar, TextInput } from 'react-native-paper';
 import { useAuthStore } from '../../store/useAuthStore';
 import useOrderStore from '../../store/useOrderStore';
@@ -51,10 +51,7 @@ const OrderManagementScreen = ({ navigation }) => {
 
     const handleUpdateStatus = async (orderId, status) => {
         try {
-
             await updateOrderStatus(orderId, status, status === 'DISPATCHED' ? lrNumber : null, uploadedFile);
-
-
             Alert.alert('Success', 'Order status updated successfully',
                 [
                     {
@@ -105,6 +102,12 @@ const OrderManagementScreen = ({ navigation }) => {
             Alert.alert('Error', 'Please enter Vehicle Details');
             return;
         }
+
+        if (!uploadedFile) {
+            Alert.alert('Error', 'Please upload LR Document');
+            return;
+        }
+
         handleUpdateStatus(selectedOrder.id, 'DISPATCHED', uploadedFile);
     };
 
@@ -123,12 +126,12 @@ const OrderManagementScreen = ({ navigation }) => {
     const handleFileUpload = async () => {
         try {
             const result = await ImagePicker.launchImageLibraryAsync({
-                mediaTypes: ['images'],
+                mediaTypes: ImagePicker.MediaTypeOptions.Images,
                 allowsEditing: true,
-                aspect: [1, 1],
                 quality: 1,
             });
-            if (result.type === 'success') {
+
+            if (!result.canceled) {
                 setUploadedFile(result.assets[0].uri);
                 Alert.alert('Success', 'File uploaded successfully');
             }
@@ -285,7 +288,7 @@ const OrderManagementScreen = ({ navigation }) => {
             {/* Search and Filter Section */}
             <View style={styles.searchFilterSection}>
                 <Searchbar
-                    placeholder="Search orders by product name or order ID"
+                    placeholder="Search orders by product name or order"
                     onChangeText={setSearchQuery}
                     value={searchQuery}
                     style={styles.searchBar}
@@ -409,11 +412,23 @@ const OrderManagementScreen = ({ navigation }) => {
                                 >
                                     Choose File
                                 </Button>
-                                {uploadedFile && (
-                                    <Text style={styles.fileName}>
+                                {/* {uploadedFile && (
+                                    <Text style={styles.fileName}>  
                                         ✓ {uploadedFile.name}
                                     </Text>
+                                )} */}
+                                {uploadedFile && (
+                                    <Image
+                                        source={{ uri: uploadedFile }}
+                                        style={{
+                                            width: 120,
+                                            height: 120,
+                                            borderRadius: 8,
+                                            marginTop: 10
+                                        }}
+                                    />
                                 )}
+
                             </View>
 
                             <View style={styles.modalActions}>
@@ -428,10 +443,15 @@ const OrderManagementScreen = ({ navigation }) => {
                                     mode="contained"
                                     onPress={handleConfirmDispatch}
                                     style={[styles.modalButton, styles.confirmButton]}
-                                    disabled={!lrNumber.trim() || !vehicleDetails.trim()}
+                                    disabled={
+                                        !lrNumber.trim() ||
+                                        !vehicleDetails.trim() ||
+                                        !uploadedFile
+                                    }
                                 >
                                     Confirm Dispatch
                                 </Button>
+
                             </View>
                         </ScrollView>
                     </View>

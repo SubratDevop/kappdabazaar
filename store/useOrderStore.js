@@ -51,17 +51,34 @@ const useOrderStore = create((set, get) => ({
     },
 
     // Update order status
-    updateOrderStatus: async (orderId, status, lrNumber , lrFile) => {
+    updateOrderStatus: async (orderId, status, lrNumber, lrFile) => {
         try {
 
             console.log("UPLOAD FILE ::::", lrFile);
             const token = await AsyncStorage.getItem(STORAGE_KEYS.TOKEN);
-
+            const payload = new FormData();
             set({ loading: true, error: null });
-            const payload = {
+            payload = {
                 status,
                 ...(lrNumber && { lr_number: lrNumber })
             };
+
+            payload.append("status", status);
+            payload.append("lr_number", lrNumber);
+
+
+
+            if (lrFile && lrFile.startsWith("file")) {
+                const filename = lrFile.split("/").pop();
+                const match = /\.(\w+)$/.exec(filename ?? '');
+                const ext = match ? match[1] : "jpg";
+
+                formData.append("lr_file", {
+                    uri: lrFile,
+                    name: filename,
+                    type: `image/${ext}`,
+                });
+            }
 
             const response = await axios.put(`${API_BASE}/orders/update/${orderId}`, payload, {
                 headers: {
