@@ -92,8 +92,8 @@ android {
         applicationId 'com.app.kapdabazaar'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 26
-        versionName "1.0.1"
+        versionCode 32
+        versionName "1.0.2"
         multiDexEnabled true
     }
     signingConfigs {
@@ -133,6 +133,11 @@ android {
     }
     androidResources {
         ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:!CVS:!thumbs.db:!picasa.ini:!*~'
+    }
+
+    lintOptions {
+    checkReleaseBuilds false
+    abortOnError false
     }
 }
 

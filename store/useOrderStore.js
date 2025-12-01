@@ -3,7 +3,6 @@ import axios from 'axios';
 import { create } from 'zustand';
 import { API_BASE } from '../constants/exports';
 import { STORAGE_KEYS } from '../store/useAuthStore';
-import * as ImageManipulator from 'expo-image-manipulator';
 
 const useOrderStore = create((set, get) => ({
     orders: [],
@@ -52,62 +51,63 @@ const useOrderStore = create((set, get) => ({
     },
 
     // Update order status
-
-    updateOrderStatus: async (orderId, status, lrNumber, lrFile , vehicleDetails) => {
+    // Update order status - PDF ONLY
+    updateOrderStatus: async (orderId, status, lrNumber, lrFile, vehicleDetails) => {
         try {
-            console.log("UPLOAD FILE ::::", lrFile);
-
             const token = await AsyncStorage.getItem(STORAGE_KEYS.TOKEN);
             let payload = new FormData();
+
             set({ loading: true, error: null });
 
             payload.append("status", status);
             payload.append("lr_number", lrNumber);
             payload.append("vehicleNumber", vehicleDetails);
+            // ✅ STRICT PDF VALIDATION
+            if (lrFile?.uri) {
 
+                const isPdf =
+                    lrFile.type === "application/pdf" ||
+                    lrFile.name?.toLowerCase().endsWith(".pdf");
 
-            if (lrFile && lrFile.startsWith("file")) {
-
-                // ✅ COMPRESS IMAGE HERE
-                const compressedImage = await ImageManipulator.manipulateAsync(
-                    lrFile,
-                    [{ resize: { width: 1000 } }], // reduce resolution
-                    {
-                        compress: 0.5,               // 0.1 = very small, 1 = original
-                        format: ImageManipulator.SaveFormat.JPEG
-                    }
-                );
-
-                const filename = compressedImage.uri.split("/").pop();
-                const match = /\.(\w+)$/.exec(filename ?? '');
-                const ext = match ? match[1] : "jpg";
+                if (!isPdf) {
+                    set({ loading: false });
+                    throw new Error("Only PDF files are allowed for LR upload");
+                }
 
                 payload.append("lr_file", {
-                    uri: compressedImage.uri,
-                    name: filename,
-                    type: `image/${ext}`,
+                    uri: lrFile.uri,
+                    name: lrFile.name || `lr_${Date.now()}.pdf`,
+                    type: "application/pdf",
                 });
             }
+            console.log(" PAYLOAD :::::", payload);
+
 
             const response = await axios.post(
                 `${API_BASE}/orders/update/${orderId}`,
                 payload,
                 {
                     headers: {
+                        Authorization: `Bearer ${token}`,
                         'Content-Type': 'multipart/form-data',
-                        'Authorization': `Bearer ${token}`
-                    }
+                    },
+                    timeout: 30000,
                 }
             );
+            console.log(" PAYLOAD 222:::::", payload);
 
             set({ loading: false });
             return response.data;
 
         } catch (error) {
+            console.error("Backend Response:", error?.response?.data);
+            console.error("Status Code:", error?.response?.status);
+
             set({ error: error.message, loading: false });
             throw error;
         }
     },
+
 
     // Get single order details
     getOrderDetails: async (orderId) => {

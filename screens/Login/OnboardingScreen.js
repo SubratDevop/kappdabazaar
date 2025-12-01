@@ -17,6 +17,8 @@ import { Button, TextInput } from "react-native-paper";
 import { colors, themeInput } from "../../constants/exports";
 import { width } from "../../constants/helpers";
 import { useAuthStore } from "../../store/useAuthStore";
+import * as DocumentPicker from 'expo-document-picker';
+
 
 const OnboardingScreen = ({ route }) => {
     const navigation = useNavigation();
@@ -30,6 +32,8 @@ const OnboardingScreen = ({ route }) => {
 
     const [fadeAnim] = useState(new Animated.Value(1));
     const [uploadedImage, setUploadedImage] = useState(null);
+    const [uploadedFile, setUploadedFile] = useState(null);
+
 
     const [companyDetails, setCompanyDetails] = useState({
         company_name: "",
@@ -51,26 +55,52 @@ const OnboardingScreen = ({ route }) => {
         })();
     }, []);
 
-    const handleImageUpload = async () => {
+    // const handleImageUpload = async () => {
+    //     try {
+    //         const result = await ImagePicker.launchImageLibraryAsync({
+    //             allowsEditing: false,
+    //             aspect: [16, 9],
+    //             quality: 1,
+    //         });
+    //         if (!result.canceled) {
+    //             const uri = result.assets[0].uri;
+    //             setUploadedImage(uri);
+    //             setCompanyDetails((prev) => ({ ...prev, gst_certificate_url: uri }));
+    //         }
+    //     } catch (error) {
+    //         console.error("Image upload error:", error);
+    //     }
+    // };
+    const handleFileUpload = async () => {
         try {
-            const result = await ImagePicker.launchImageLibraryAsync({
-                allowsEditing: false,
-                aspect: [16, 9],
-                quality: 1,
+            const result = await DocumentPicker.getDocumentAsync({
+                type: 'application/pdf',
+                copyToCacheDirectory: true,
+                multiple: false,
             });
-            if (!result.canceled) {
-                const uri = result.assets[0].uri;
-                setUploadedImage(uri);
-                setCompanyDetails((prev) => ({ ...prev, gst_certificate_url: uri }));
+
+            if (result.canceled === false) {
+                const file = result.assets[0];
+
+                const pdfFile = {
+                    uri: file.uri,
+                    name: file.name,
+                    type: file.mimeType || 'application/pdf',
+                };
+
+                setUploadedFile(pdfFile);
+                Alert.alert('Success', 'PDF selected successfully');
             }
         } catch (error) {
-            console.error("Image upload error:", error);
+            console.error('PDF Picker Error:', error);
+            Alert.alert('Error', 'Failed to select PDF');
         }
     };
 
     const handleSubmit = async () => {
 
         const { company_name, gst_number, pan_number } = companyDetails;
+
 
         if (!isValidCompanyName(company_name)) {
             return Alert.alert("Validation Error", "Please enter a valid company name.");
@@ -84,11 +114,11 @@ const OnboardingScreen = ({ route }) => {
             return Alert.alert("Validation Error", "Invalid PAN number format.");
         }
 
-        if (!companyDetails.gst_certificate_url) {
+        if (!uploadedFile) {
             return Alert.alert("Validation Error", "Please upload your GST Certificate.");
         }
 
-
+        console.log("UPLOADED FILE ........", uploadedFile);
 
         try {
             const ans = await utilsFn();
@@ -102,7 +132,9 @@ const OnboardingScreen = ({ route }) => {
                     company_name,
                     gst_number,
                     pan_number,
-                    gst_certificate_url: companyDetails.gst_certificate_url,
+                    // gst_certificate_url: companyDetails.gst_certificate_url,
+                    gst_certificate_url: uploadedFile,
+
                 });
                 const updatedAuthInfo = await utilsFn();
                 setAuthInfo(updatedAuthInfo);
@@ -113,6 +145,8 @@ const OnboardingScreen = ({ route }) => {
             console.error(err);
             Alert.alert("Error", "Something went wrong while saving details.");
         }
+
+
     };
 
     const handleChange = (key, value) => {
@@ -145,11 +179,11 @@ const OnboardingScreen = ({ route }) => {
                                 </View>
                             ))}
 
-                            <Button onPress={handleImageUpload} mode="outlined" style={{ marginTop: 10 }}>
+                            <Button onPress={handleFileUpload} mode="outlined" style={{ marginTop: 10 }}>
                                 Upload GST Certificate
                             </Button>
 
-                            {uploadedImage && (
+                            {/* {uploadedImage && (
                                 <Image
                                     source={{ uri: uploadedImage }}
                                     style={{
@@ -157,6 +191,12 @@ const OnboardingScreen = ({ route }) => {
                                         marginTop: 15, alignSelf: "center"
                                     }}
                                 />
+                            )} */}
+
+                            {uploadedFile && (
+                                <Text style={styles.fileName}>
+                                    ✅ {uploadedFile.name}
+                                </Text>
                             )}
 
                             <Button

@@ -69,7 +69,7 @@ export const useAuthStore = create((set) => ({
                 userRole: role,
                 isAuthenticated: true,
                 isFullyAuthenticated: true,
-                user:admin
+                user: admin
             });
         } catch (err) {
             Toast.show({
@@ -90,8 +90,8 @@ export const useAuthStore = create((set) => ({
         set({ isLoading: true });
         try {
             const { data } = await axios.post(`${API_BASE}/auth/login/seller-and-user`, payload);
-            const { token, role, user, user_id , totalOrders , totalSpent } = data;
- 
+            const { token, role, user, user_id, totalOrders, totalSpent } = data;
+
             const parsed_user = JSON.stringify(user);
 
             await AsyncStorage.setItem(STORAGE_KEYS.TOKEN, token);
@@ -119,7 +119,7 @@ export const useAuthStore = create((set) => ({
                 userRole: role,
                 isAuthenticated: true,
                 isFullyAuthenticated: true,
-                user:user
+                user: user
             });
         } catch (err) {
             Toast.show({
@@ -271,21 +271,42 @@ export const useAuthStore = create((set) => ({
         try {
             const token = await AsyncStorage.getItem(STORAGE_KEYS.TOKEN);
             const formData = new FormData();
-
+            console.log(". UPLOADED GST FILE ", payload.gst_certificate_url);
             formData.append("userId", payload.userId);
             formData.append("company_name", payload.company_name);
             formData.append("pan_number", payload.pan_number);
             formData.append("gst_number", payload.gst_number);
 
-            if (payload.gst_certificate_url && payload.gst_certificate_url.startsWith("file")) {
-                const filename = payload.gst_certificate_url.split("/").pop();
-                const match = /\.(\w+)$/.exec(filename ?? '');
-                const ext = match ? match[1] : "jpg";
+            // if (payload.gst_certificate_url && payload.gst_certificate_url.startsWith("file")) {
+            //     const filename = payload.gst_certificate_url.split("/").pop();
+            //     const match = /\.(\w+)$/.exec(filename ?? '');
+            //     const ext = match ? match[1] : "jpg";
+
+            //     formData.append("gst_cert", {
+            //         uri: payload.gst_certificate_url,
+            //         name: filename,
+            //         type: `image/${ext}`,
+            //     });
+            // }
+
+
+
+            // ✅ STRICT PDF VALIDATION
+            if (payload.gst_certificate_url?.uri) {
+
+                const isPdf =
+                    payload.gst_certificate_url.type === "application/pdf" ||
+                    payload.gst_certificate_url.name?.toLowerCase().endsWith(".pdf");
+
+                if (!isPdf) {
+                    set({ loading: false });
+                    throw new Error("Only PDF files are allowed for GST upload");
+                }
 
                 formData.append("gst_cert", {
-                    uri: payload.gst_certificate_url,
-                    name: filename,
-                    type: `image/${ext}`,
+                    uri: payload.gst_certificate_url.uri,
+                    name: payload.gst_certificate_url.name || `lr_${Date.now()}.pdf`,
+                    type: "application/pdf",
                 });
             }
 

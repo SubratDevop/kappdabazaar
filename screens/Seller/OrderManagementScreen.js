@@ -1,7 +1,6 @@
-import * as ImagePicker from "expo-image-picker";
 import React, { useEffect, useState } from 'react';
 import * as FileSystem from 'expo-file-system';
-import * as Sharing from 'expo-sharing';
+import * as DocumentPicker from 'expo-document-picker';
 import { Alert, Modal, ScrollView, StyleSheet, Text, View, Image } from 'react-native';
 import { Button, Card, Chip, IconButton, Menu, Searchbar, TextInput } from 'react-native-paper';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -23,6 +22,7 @@ const OrderManagementScreen = ({ navigation }) => {
     const [PROCESSINGModalVisible, setProcessingModalVisible] = useState(false);
     const [menuVisible, setMenuVisible] = useState({});
     const [uploadedFile, setUploadedFile] = useState(null);
+
 
     // Search and filter states
     const [searchQuery, setSearchQuery] = useState('');
@@ -55,7 +55,7 @@ const OrderManagementScreen = ({ navigation }) => {
 
     const handleUpdateStatus = async (orderId, status) => {
         try {
-            await updateOrderStatus(orderId, status, status === 'DISPATCHED' ? lrNumber : null, uploadedFile , vehicleDetails);
+            await updateOrderStatus(orderId, status, status === 'DISPATCHED' ? lrNumber : null, status === 'DISPATCHED' ? uploadedFile : null, status === 'DISPATCHED' ? vehicleDetails : null);
             Alert.alert('Success', 'Order status updated successfully',
                 [
                     {
@@ -80,7 +80,7 @@ const OrderManagementScreen = ({ navigation }) => {
             console.error('Error updating order status:', error);
             Alert.alert('Error', 'Failed to update order status');
         }
-    };
+    }
 
     const handleDispatchOrder = (order) => {
         setLrNumber('');
@@ -126,22 +126,29 @@ const OrderManagementScreen = ({ navigation }) => {
         }
         handleUpdateStatus(selectedOrder.id, 'PROCESSING'); //! 20
     };
-
     const handleFileUpload = async () => {
         try {
-            const result = await ImagePicker.launchImageLibraryAsync({
-                mediaTypes: ImagePicker.MediaTypeOptions.Images,
-                allowsEditing: true,
-                quality: 1,
+            const result = await DocumentPicker.getDocumentAsync({
+                type: 'application/pdf',
+                copyToCacheDirectory: true,
+                multiple: false,
             });
 
-            if (!result.canceled) {
-                setUploadedFile(result.assets[0].uri);
-                Alert.alert('Success', 'File uploaded successfully');
+            if (result.canceled === false) {
+                const file = result.assets[0];
+
+                const pdfFile = {
+                    uri: file.uri,
+                    name: file.name,
+                    type: file.mimeType || 'application/pdf',
+                };
+
+                setUploadedFile(pdfFile);
+                Alert.alert('Success', 'PDF selected successfully');
             }
         } catch (error) {
-            console.error('Error picking document:', error);
-            Alert.alert('Error', 'Failed to upload file');
+            console.error('PDF Picker Error:', error);
+            Alert.alert('Error', 'Failed to select PDF');
         }
     };
 
@@ -178,28 +185,63 @@ const OrderManagementScreen = ({ navigation }) => {
     };
 
     // Download LR
+
     const downloadLRFile = async (fileUrl) => {
         try {
             if (!fileUrl) {
-                Alert.alert("Error", "LR file not available");
+                Alert.alert("Error", "File not available");
+                return;
+            }
+            console.log("PDF URL:", fileUrl);
+
+            // 1. Request folder permission
+            const permissions = await FileSystem.StorageAccessFramework
+                .requestDirectoryPermissionsAsync();
+
+            if (!permissions.granted) {
+                Alert.alert("Permission Required", "Please allow folder access.");
                 return;
             }
 
-            const fileName = fileUrl.split('/').pop();
-            const fileUri = FileSystem.documentDirectory + fileName;
+            const folderUri = permissions.directoryUri;
 
-            const { uri } = await FileSystem.downloadAsync(fileUrl, fileUri);
+            // 2. Download file to cache
+            const fileName = fileUrl.split("/").pop();
+            const tempPath = FileSystem.cacheDirectory + fileName;
 
-            console.log("Downloaded to:", uri);
+            const downloadResult = await FileSystem.downloadAsync(fileUrl, tempPath);
 
-            // Open share / save dialog
-            await Sharing.shareAsync(uri);
+            // 3. Detect MIME by extension
+            const ext = fileName.split(".").pop()?.toLowerCase();
+            const mime =
+                ext === "pdf" ? "application/pdf" :
+                    ext === "jpg" || ext === "jpeg" ? "image/jpeg" :
+                        ext === "png" ? "image/png" :
+                            "application/octet-stream";
 
-        } catch (error) {
-            console.error("Download failed:", error);
-            Alert.alert("Error", "Failed to download LR file");
+            // 4. Create empty file inside the selected folder
+            const newFileUri = await FileSystem.StorageAccessFramework
+                .createFileAsync(folderUri, fileName, mime);
+
+            // 5. Read downloaded file as Base64
+            const base64Data = await FileSystem.readAsStringAsync(downloadResult.uri, {
+                encoding: FileSystem.EncodingType.Base64,
+            });
+
+            // 6. Write Base64 into created file
+            await FileSystem.writeAsStringAsync(newFileUri, base64Data, {
+                encoding: FileSystem.EncodingType.Base64,
+            });
+
+            Alert.alert("Success", "PDF downloaded successfully!");
+
+        } catch (err) {
+            console.log("PDF Download Error:", err);
+            Alert.alert("Error", "Failed to download PDF file.");
         }
     };
+
+
 
     // Filter orders based on search and status
     const filteredOrders = orders.filter(order => {
@@ -233,7 +275,7 @@ const OrderManagementScreen = ({ navigation }) => {
                             <Menu.Item
                                 onPress={() => {
                                     setMenuVisible({ ...menuVisible, [order.id]: false });
-                                    downloadLRFile(`${URL_BASE}/${order.LRfile}`);  // 👈 API LR file URL
+                                    downloadLRFile(`${URL_BASE}${order.LRfile}`);  // 👈 API LR file URL
                                 }}
                                 title="Download LR"
                                 leadingIcon="download"
@@ -257,6 +299,7 @@ const OrderManagementScreen = ({ navigation }) => {
                                 />
                             )}
                         </Menu>
+
                     </View>
                 </View>
 
@@ -440,21 +483,11 @@ const OrderManagementScreen = ({ navigation }) => {
                                 >
                                     Choose File
                                 </Button>
-                                {/* {uploadedFile && (
-                                    <Text style={styles.fileName}>  
-                                        ✓ {uploadedFile.name}
-                                    </Text>
-                                )} */}
+
                                 {uploadedFile && (
-                                    <Image
-                                        source={{ uri: uploadedFile }}
-                                        style={{
-                                            width: 120,
-                                            height: 120,
-                                            borderRadius: 8,
-                                            marginTop: 10
-                                        }}
-                                    />
+                                    <Text style={styles.fileName}>
+                                        ✅ {uploadedFile.name}
+                                    </Text>
                                 )}
 
                             </View>

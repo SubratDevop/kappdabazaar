@@ -3,6 +3,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from "axios";
 import { format } from "date-fns";
 import React, { useEffect, useState } from "react";
+import * as FileSystem from 'expo-file-system';
+
 import {
   Alert,
   RefreshControl,
@@ -16,14 +18,17 @@ import {
   ActivityIndicator,
   Button,
   Card,
+  Menu,
   Chip,
-  Divider,
+  Divider, IconButton,
   Searchbar
 } from "react-native-paper";
 import EmptyState from "../../components/EmptyState";
 import { API_BASE } from "../../constants/exports";
 import { STORAGE_KEYS } from '../../store/useAuthStore';
 import useOrderStore from '../../store/useOrderStore';
+import { URL_BASE } from '../../constants/exports';
+
 
 const OrderMonitoringScreen = ({ navigation }) => {
   const [selectedTab, setSelectedTab] = useState("Orders");
@@ -35,6 +40,8 @@ const OrderMonitoringScreen = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
+  const [menuVisible, setMenuVisible] = useState({});
+
 
 
   const tabs = ["Orders", "Analytics", "Reports"];
@@ -113,6 +120,57 @@ const OrderMonitoringScreen = ({ navigation }) => {
       setRefreshing(false);
     }
   };
+
+
+  // Download LR
+
+
+  const downloadLRFile = async (fileUrl) => {
+    try {
+      if (!fileUrl) {
+        Alert.alert("Error", "LR file not available");
+        return;
+      }
+
+      // Ask user to pick a folder (Downloads folder recommended)
+      const permissions = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
+
+      if (!permissions.granted) {
+        Alert.alert("Permission required", "Please allow folder access to save the file.");
+        return;
+      }
+
+      const folderUri = permissions.directoryUri;
+
+      // Download file to cache first
+      const fileName = fileUrl.split('/').pop();
+      const tempFileUri = FileSystem.cacheDirectory + fileName;
+
+      const downloaded = await FileSystem.downloadAsync(fileUrl, tempFileUri);
+
+      // Create file directly in selected folder
+      await FileSystem.StorageAccessFramework.createFileAsync(
+        folderUri,
+        fileName,
+        "application/pdf" // Or correct mime type
+      ).then(async (fileUri) => {
+        const base64 = await FileSystem.readAsStringAsync(downloaded.uri, {
+          encoding: FileSystem.EncodingType.Base64
+        });
+
+        await FileSystem.writeAsStringAsync(fileUri, base64, {
+          encoding: FileSystem.EncodingType.Base64
+        });
+      });
+
+      Alert.alert("Success", "File downloaded successfully!");
+
+    } catch (error) {
+      console.error("Download failed:", error);
+      Alert.alert("Error", "Failed to download LR file");
+    }
+  };
+
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -255,8 +313,8 @@ const OrderMonitoringScreen = ({ navigation }) => {
                   <View>
                     <Text style={styles.orderTitle}>
                       {
-                      // order.product.name
-                       order.product?.name || order.product?.product_name || "Unknown Product"
+                        // order.product.name
+                        order.product?.name || order.product?.product_name || "Unknown Product"
                       }
                     </Text>
 
@@ -273,7 +331,39 @@ const OrderMonitoringScreen = ({ navigation }) => {
                     <Text style={styles.statusText}>
                       {order.orderStatus.toUpperCase()}
                     </Text>
+
+
+
+
+
                   </View>
+
+                  {(order.orderStatus === "DISPATCHED" || order.orderStatus === "DELIVERED") && (
+
+                    <Menu
+                      visible={menuVisible[order.id] || false}
+                      onDismiss={() => setMenuVisible({ ...menuVisible, [order.id]: false })}
+                      anchor={
+                        <IconButton
+                          icon="dots-vertical"
+                          onPress={() => setMenuVisible({ ...menuVisible, [order.id]: true })}
+                        />
+                      }
+                    >
+                      <Menu.Item
+                        onPress={() => {
+                          setMenuVisible({ ...menuVisible, [order.id]: false });
+                          downloadLRFile(`${URL_BASE}/${order.LRfile}`);
+                        }}
+                        title="Download LR"
+                        leadingIcon="download"
+                      />
+
+
+                    </Menu>
+                  )}
+
+
                 </View>
                 <Divider style={styles.divider} />
                 <View style={styles.orderDetails}>

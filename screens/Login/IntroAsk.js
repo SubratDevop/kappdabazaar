@@ -107,6 +107,7 @@ const styles = StyleSheet.create({
     welcomeText: {
         fontSize: 25,
         fontWeight: '400',
+        color: "#000000ff"
     },
     brandContainer: {
         flexDirection: 'row',
@@ -116,6 +117,7 @@ const styles = StyleSheet.create({
         fontSize: 28,
         fontWeight: '500',
         marginLeft: 5,
+        color: "#000000ff"
     },
     middleContent: {
         flex: 1,
@@ -129,6 +131,7 @@ const styles = StyleSheet.create({
     roleQuestionText: {
         fontSize: 19,
         fontWeight: '400',
+        color: "#000000ff"
     },
     roleInput: {
         width: '30%',

@@ -309,7 +309,7 @@ const AddFancy = () => {
                         <View>
                             <Text style={styles.attributeLabel}>{key}</Text>
                         </View>
-                        <View style={{ display: "flex", flexDirection: "row", justifyContent: "space-between", width: "100%", alignItems: "center" }}>
+                        <View style={{ display: "flex", flexDirection: "row",color: "#000000ff", justifyContent: "space-between", width: "100%", alignItems: "center" }}>
                             <TextInput
                                 mode="outlined"
                                 value={value}
@@ -413,7 +413,7 @@ const styles = StyleSheet.create({
         marginBottom: 12,
         backgroundColor: '#F8FAFC',
         borderRadius: 8,
-        padding: 10
+        padding: 10,
     },
     attributeLabel: {
         // flex: 1,
@@ -427,6 +427,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#fff",
         borderRadius: 8,
         width: "85%",
+        color: "#000000ff"
     },
     removeButton: {
         backgroundColor: '#ff4d4f',

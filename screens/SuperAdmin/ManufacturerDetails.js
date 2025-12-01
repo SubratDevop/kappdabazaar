@@ -12,9 +12,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import ImageViewer from "react-native-image-zoom-viewer";
 import UserFabricCard from '../../components/UserFabricCard';
 import { COLORS, URL_BASE } from "../../constants/exports";
+import * as FileSystem from 'expo-file-system';
+
 import { width } from "../../constants/helpers";
 import { useCompanyStore } from "../../store/useCompanyStore";
 const IMG = require("../../assets/company.jpg");
@@ -44,6 +45,8 @@ const ManufacturerDetails = ({ route, navigation }) => {
   const tabs = ["Profile", "Products", "Orders", "Payments"];
 
   const { fetchCompanyDetails } = useCompanyStore();
+      const [menuVisible, setMenuVisible] = useState({});
+  
 
   useEffect(() => {
     async function fetchDetails() {
@@ -71,6 +74,70 @@ const ManufacturerDetails = ({ route, navigation }) => {
     }
     fetchDetails();
   }, []);
+
+  // downloadGSTCertificate
+
+
+  const downloadGSTCertificate = async (fileUrl) => {
+    try {
+      if (!fileUrl) {
+        Alert.alert("Error", "File not available");
+        return;
+      }
+      console.log("PDF URL:", fileUrl);
+
+
+      // 1. Request folder permission
+      const permissions = await FileSystem.StorageAccessFramework
+        .requestDirectoryPermissionsAsync();
+
+      if (!permissions.granted) {
+        Alert.alert("Permission Required", "Please allow folder access.");
+        return;
+      }
+
+      const folderUri = permissions.directoryUri;
+
+      // 2. Download file to cache
+      const fileName = fileUrl.split("/").pop();
+      const tempPath = FileSystem.cacheDirectory + fileName;
+
+      const downloadResult = await FileSystem.downloadAsync(fileUrl, tempPath);
+
+      // 3. Detect MIME by extension
+      const ext = fileName.split(".").pop()?.toLowerCase();
+      const mime =
+        ext === "pdf" ? "application/pdf" :
+          ext === "jpg" || ext === "jpeg" ? "image/jpeg" :
+            ext === "png" ? "image/png" :
+              "application/octet-stream";
+
+      // 4. Create empty file inside the selected folder
+      const newFileUri = await FileSystem.StorageAccessFramework
+        .createFileAsync(folderUri, fileName, mime);
+
+      // 5. Read downloaded file as Base64
+      const base64Data = await FileSystem.readAsStringAsync(downloadResult.uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      // 6. Write Base64 into created file
+      await FileSystem.writeAsStringAsync(newFileUri, base64Data, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      Alert.alert("Success", "PDF downloaded successfully!");
+
+    } catch (err) {
+      console.log("PDF Download Error:", err);
+      Alert.alert("Error", "Failed to download PDF file.");
+    }
+  };
+
+
+
+
+
 
   return (
     <View style={{ flex: 1 }}>
@@ -175,31 +242,26 @@ const ManufacturerDetails = ({ route, navigation }) => {
               />
             </View>
 
-            <View style={styles.formGroup}>
-              <Text
-                style={[
-                  styles.inputLabel,
-                  { color: COLORS.secondary, fontSize: 16 },
-                ]}
-              >
-                GST Certificate
-              </Text>
-            </View>
-            {/* Uploaded Image Preview */}
-            {data?.gst_certificate_url && (
-              <TouchableOpacity onPress={() => setModalVisible(true)}>
-                <Image
-                  source={{ uri: URL_BASE + data?.gst_certificate_url }}
-                  style={{
-                    width: "100%",
-                    height: 200,
-                    marginTop: 10,
-                    borderRadius: 10,
+            <View style={[styles.tableRow, styles.evenRow]}>
+              <Text style={[styles.tableLabel,{fontSize: 16 }]}>GST Certificate</Text>
+
+              {data?.gst_certificate_url ? (
+                <TouchableOpacity
+                  onPress={() => {
+                    setModalVisible({ ...menuVisible, [data.id]: false });
+                    downloadGSTCertificate(`${URL_BASE}${data?.gst_certificate_url}`);  // 👈 API LR file URL
                   }}
-                  resizeMode="contain"
-                />
-              </TouchableOpacity>
-            )}
+                >
+                  <Text style={[styles.tableValue, { color: COLORS.secondary , fontWeight: "700" }]}>
+                    Download
+
+                  </Text>
+                </TouchableOpacity>
+              ) : (
+                <Text style={styles.tableValue}>Not Uploaded</Text>
+              )}
+            </View>
+
           </View>
         )}
         {selectedTab === "Products" && (
@@ -337,7 +399,7 @@ const ManufacturerDetails = ({ route, navigation }) => {
         )}
 
         {/* Modal for Zoomed Image */}
-        {data?.gst_certificate_url ? (
+        {/* {data?.gst_certificate_url ? (
           <Modal
             visible={isModalVisible}
             transparent={true}
@@ -374,6 +436,8 @@ const ManufacturerDetails = ({ route, navigation }) => {
             No GST Certificate Uploaded
           </Text>
         )}
+    
+     */}
       </ScrollView>
     </View>
   );
@@ -396,7 +460,9 @@ const styles = StyleSheet.create({
     borderColor: "#ccc",
     borderRadius: 5,
     padding: 10,
-    fontSize: 15,
+    fontSize: 15, 
+    color: "black",
+
     backgroundColor: "#F8FAFC",
   },
   disabledInput: {

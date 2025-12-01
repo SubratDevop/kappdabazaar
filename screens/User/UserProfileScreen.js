@@ -61,44 +61,44 @@ const UserProfileScreen = ({ navigation }) => {
 
     // delete account modal
     const DeleteAccountModal = ({ visible, onClose, onConfirm }) => {
-    return (
-        <Modal
-            transparent
-            animationType="fade"
-            visible={visible}
-            onRequestClose={onClose}
-        >
-            <View style={styles.overlayCentered}>
-                <View style={styles.deleteModalBox}>
-                    {/* 🗑️ Trash Icon */}
-                    <Image
-                        source={{
-                            uri: "https://cdn-icons-png.flaticon.com/512/1214/1214428.png", // red trash icon
-                        }}
-                        style={styles.deleteIcon}
-                    />
+        return (
+            <Modal
+                transparent
+                animationType="fade"
+                visible={visible}
+                onRequestClose={onClose}
+            >
+                <View style={styles.overlayCentered}>
+                    <View style={styles.deleteModalBox}>
+                        {/* 🗑️ Trash Icon */}
+                        <Image
+                            source={{
+                                uri: "https://cdn-icons-png.flaticon.com/512/1214/1214428.png", // red trash icon
+                            }}
+                            style={styles.deleteIcon}
+                        />
 
-                    {/* Confirmation Text */}
-                    <Text style={styles.deleteTitle}>
-                        Are you sure you want to delete your account?
-                    </Text>
+                        {/* Confirmation Text */}
+                        <Text style={styles.deleteTitle}>
+                            Are you sure you want to delete your account?
+                        </Text>
 
-                    {/* Buttons */}
-                    <TouchableOpacity
-                        style={styles.deleteButtonConfirm}
-                        onPress={onConfirm}
-                    >
-                        <Text style={styles.deleteButtonText}>Yes, Delete</Text>
-                    </TouchableOpacity>
+                        {/* Buttons */}
+                        <TouchableOpacity
+                            style={styles.deleteButtonConfirm}
+                            onPress={onConfirm}
+                        >
+                            <Text style={styles.deleteButtonText}>Yes, Delete</Text>
+                        </TouchableOpacity>
 
-                    <TouchableOpacity onPress={onClose}>
-                        <Text style={styles.keepButtonText}>Keep Account</Text>
-                    </TouchableOpacity>
+                        <TouchableOpacity onPress={onClose}>
+                            <Text style={styles.keepButtonText}>Keep Account</Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
-            </View>
-        </Modal>
-    );
-};
+            </Modal>
+        );
+    };
 
 
     const formatIndianCurrency = (amount) => {
@@ -242,10 +242,10 @@ const UserProfileScreen = ({ navigation }) => {
             <View style={styles.profileHeader}>
                 <Feather name="user" size={40} color="#969696" />
                 <View style={{ paddingLeft: 15 }}>
-                    <Text style={{ fontSize: 21, fontWeight: "500" }}>{userInfo?.name}</Text>
+                    <Text style={{ fontSize: 21, fontWeight: "500", color: "#000000ff" }}>{userInfo?.name}</Text>
                     <View>
-                        <Text style={{ fontSize: 12 }}>{userInfo?.phone_number}</Text>
-                        <Text style={{ fontSize: 12 }}>{userInfo?.email}</Text>
+                        <Text style={{ fontSize: 12, color: "#000000ff" }}>{userInfo?.phone_number}</Text>
+                        <Text style={{ fontSize: 12, color: "#000000ff" }}>{userInfo?.email}</Text>
                         <Text style={{ fontSize: 12, color: '#3B82F6', fontWeight: '500' }}>Customer Account</Text>
                     </View>
                 </View>
@@ -435,57 +435,57 @@ export default UserProfileScreen
 
 const styles = StyleSheet.create({
 
-overlayCentered: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.4)",
-},
-deleteModalBox: {
-    width: width * 0.8,
-    backgroundColor: "#fff",
-    borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 30,
-    paddingHorizontal: 20,
-    elevation: 10,
-    shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-},
-deleteIcon: {
-    width: 60,
-    height: 60,
-    tintColor: "#ff4d4f",
-    marginBottom: 15,
-},
-deleteTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    textAlign: "center",
-    color: "#111",
-    marginBottom: 25,
-    lineHeight: 22,
-},
-deleteButtonConfirm: {
-    backgroundColor: "#ff4d4f",
-    borderRadius: 25,
-    paddingVertical: 10,
-    width: "75%",
-    alignItems: "center",
-    marginBottom: 12,
-},
-deleteButtonText: {
-    color: "#fff",
-    fontWeight: "600",
-    fontSize: 15,
-},
-keepButtonText: {
-    color: "#ff4d4f",
-    fontWeight: "600",
-    fontSize: 15,
-},
+    overlayCentered: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "rgba(0,0,0,0.4)",
+    },
+    deleteModalBox: {
+        width: width * 0.8,
+        backgroundColor: "#fff",
+        borderRadius: 20,
+        alignItems: "center",
+        justifyContent: "center",
+        paddingVertical: 30,
+        paddingHorizontal: 20,
+        elevation: 10,
+        shadowColor: "#000",
+        shadowOpacity: 0.2,
+        shadowRadius: 5,
+    },
+    deleteIcon: {
+        width: 60,
+        height: 60,
+        tintColor: "#ff4d4f",
+        marginBottom: 15,
+    },
+    deleteTitle: {
+        fontSize: 16,
+        fontWeight: "600",
+        textAlign: "center",
+        color: "#111",
+        marginBottom: 25,
+        lineHeight: 22,
+    },
+    deleteButtonConfirm: {
+        backgroundColor: "#ff4d4f",
+        borderRadius: 25,
+        paddingVertical: 10,
+        width: "75%",
+        alignItems: "center",
+        marginBottom: 12,
+    },
+    deleteButtonText: {
+        color: "#fff",
+        fontWeight: "600",
+        fontSize: 15,
+    },
+    keepButtonText: {
+        color: "#ff4d4f",
+        fontWeight: "600",
+        fontSize: 15,
+    },
 
 
     profileHeader: {
@@ -638,12 +638,14 @@ keepButtonText: {
     infoLabel: {
         fontWeight: "500",
         flex: 1,
+        color: "#000000ff"
     },
     infoValue: {
         fontSize: 15,
         fontWeight: "400",
         paddingVertical: 5,
         flex: 2,
+        color: "#000000ff"
     },
     editText: {
         textDecorationLine: "underline",
@@ -688,6 +690,7 @@ keepButtonText: {
         fontSize: 16,
         fontWeight: "500",
         paddingVertical: 5,
+        color: "#000000ff"
     },
     deleteAccountext: {
         fontSize: 16,

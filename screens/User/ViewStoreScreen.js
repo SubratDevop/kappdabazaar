@@ -4,6 +4,7 @@ import {
   Animated,
   FlatList,
   Image,
+  Alert,
   Modal,
   ScrollView,
   StyleSheet,
@@ -18,11 +19,16 @@ import { COLORS } from "../../constants/exports";
 import { width } from "../../constants/helpers";
 import { useCompanyStore } from "../../store/useCompanyStore";
 const IMG = require("../../assets/company.jpg");
+import { URL_BASE } from '../../constants/exports';
+import * as FileSystem from 'expo-file-system';
+
+
 
 const ViewStoreScreen = ({ route, navigation }) => {
   const [selectedTab, setSelectedTab] = useState("Products");
   const { manufacturer } = route.params || {};
   const [products, setProducts] = useState([]);
+  const [menuVisible, setMenuVisible] = useState({});
 
 
 
@@ -45,6 +51,63 @@ const ViewStoreScreen = ({ route, navigation }) => {
   const tabs = ["Profile", "Products"];
 
   const { fetchCompanyDetails } = useCompanyStore();
+
+  const downloadGSTCertificate = async (fileUrl) => {
+    try {
+      if (!fileUrl) {
+        Alert.alert("Error", "File not available");
+        return;
+      }
+      console.log("PDF URL:", fileUrl);
+
+
+      // 1. Request folder permission
+      const permissions = await FileSystem.StorageAccessFramework
+        .requestDirectoryPermissionsAsync();
+
+      if (!permissions.granted) {
+        Alert.alert("Permission Required", "Please allow folder access.");
+        return;
+      }
+
+      const folderUri = permissions.directoryUri;
+
+      // 2. Download file to cache
+      const fileName = fileUrl.split("/").pop();
+      const tempPath = FileSystem.cacheDirectory + fileName;
+
+      const downloadResult = await FileSystem.downloadAsync(fileUrl, tempPath);
+
+      // 3. Detect MIME by extension
+      const ext = fileName.split(".").pop()?.toLowerCase();
+      const mime =
+        ext === "pdf" ? "application/pdf" :
+          ext === "jpg" || ext === "jpeg" ? "image/jpeg" :
+            ext === "png" ? "image/png" :
+              "application/octet-stream";
+
+      // 4. Create empty file inside the selected folder
+      const newFileUri = await FileSystem.StorageAccessFramework
+        .createFileAsync(folderUri, fileName, mime);
+
+      // 5. Read downloaded file as Base64
+      const base64Data = await FileSystem.readAsStringAsync(downloadResult.uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      // 6. Write Base64 into created file
+      await FileSystem.writeAsStringAsync(newFileUri, base64Data, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      Alert.alert("Success", "PDF downloaded successfully!");
+
+    } catch (err) {
+      console.log("PDF Download Error:", err);
+      Alert.alert("Error", "Failed to download PDF file.");
+    }
+  };
+
 
   useEffect(() => {
     async function fetchDetails() {
@@ -176,9 +239,14 @@ const ViewStoreScreen = ({ route, navigation }) => {
                 <Text style={styles.tableLabel}>GST Certificate</Text>
 
                 {data?.gst_certificate_url ? (
-                  <TouchableOpacity onPress={() => setModalVisible(true)}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setModalVisible({ ...menuVisible, [data.id]: false });
+                      downloadGSTCertificate(`${URL_BASE}${data?.gst_certificate_url}`);  // 👈 API LR file URL
+                    }}
+                  >
                     <Text style={[styles.tableValue, { color: COLORS.secondary }]}>
-                      View Certificate
+                      Download Certificate
 
                     </Text>
                   </TouchableOpacity>
@@ -350,6 +418,7 @@ const ViewStoreScreen = ({ route, navigation }) => {
             No GST Certificate Uploaded
           </Text>
         )}
+        
       </ScrollView>
     </View>
   );

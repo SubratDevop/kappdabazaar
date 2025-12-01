@@ -124,10 +124,10 @@ const SellerProfileScreen = ({ route, navigation }) => {
       >
         <Feather name="user" size={40} color="#969696" />
         <View style={{ paddingLeft: 15 }}>
-          <Text style={{ fontSize: 21, fontWeight: "500" }}>{user?.name}</Text>
+          <Text style={{ fontSize: 21, fontWeight: "500", color: "#000000ff" }}>{user?.name}</Text>
           <View>
-            <Text style={{ fontSize: 12 }}>{user?.phone_number}</Text>
-            <Text style={{ fontSize: 12 }}>{user?.email}</Text>
+            <Text style={{ fontSize: 12, color: "#000000ff" }}>{user?.phone_number}</Text>
+            <Text style={{ fontSize: 12, color: "#000000ff" }}>{user?.email}</Text>
           </View>
         </View>
       </View>
@@ -161,13 +161,14 @@ const SellerProfileScreen = ({ route, navigation }) => {
                 fontSize: 16,
                 fontWeight: "500",
                 paddingVertical: 5,
+                color: "#000000ff"
               }}
             >
               Log out
             </Text>
           </View>
           <View>
-            <MaterialIcons name="logout" size={22}/>
+            <MaterialIcons name="logout" size={22} color="black"/>
           </View>
         </TouchableOpacity>
       </View>

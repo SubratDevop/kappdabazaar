@@ -4,7 +4,7 @@
     "slug": "kapda-bazaar",
     "version": "1.0.1",
     "scheme": "kapda-bazaar",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "icon": "./assets/kapda_icon.png",
     "assetBundlePatterns": [
       "assets/images/*",
@@ -34,7 +34,8 @@
     },
     "android": {
       "package": "com.app.kapdabazaar",
-      "versionCode": 26,
+      "versionCode": 32,
+      "useAndroidPhotoPicker": true,
       "permissions": [
         "CAMERA",
         "READ_EXTERNAL_STORAGE",

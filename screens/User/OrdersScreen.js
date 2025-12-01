@@ -2,12 +2,17 @@ import { MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { format } from "date-fns";
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
+
 import React, { useEffect, useState } from 'react';
 import { Alert, FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
-import { ActivityIndicator, Button, Card, Chip } from 'react-native-paper';
+import { ActivityIndicator, Button, Menu, Card, Chip, IconButton } from 'react-native-paper';
 import EmptyState from '../../components/EmptyState';
 import { API_BASE } from '../../constants/exports';
 import { STORAGE_KEYS } from '../../store/useAuthStore';
+import { URL_BASE } from '../../constants/exports';
+
 
 
 const OrdersScreen = ({ navigation }) => {
@@ -15,12 +20,14 @@ const OrdersScreen = ({ navigation }) => {
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [selectedFilter, setSelectedFilter] = useState('ALL');
+    const [menuVisible, setMenuVisible] = useState({});
+
 
     const orderFilters = [
         { key: 'ALL', label: 'All Orders' },
         { key: 'PENDING', label: 'Pending' },
-        { key: 'CONFIRMED', label: 'Confirmed' },
-        { key: 'SHIPPED', label: 'Shipped' },
+        { key: 'PROCESSING', label: 'Confirmed' },
+        { key: 'DISPATCHED', label: 'Shipped' },
         { key: 'DELIVERED', label: 'Delivered' },
         { key: 'CANCELLED', label: 'Cancelled' }
     ];
@@ -77,6 +84,56 @@ const OrdersScreen = ({ navigation }) => {
         }
     };
 
+    // Download LR
+
+
+    const downloadLRFile = async (fileUrl) => {
+        try {
+            if (!fileUrl) {
+                Alert.alert("Error", "LR file not available");
+                return;
+            }
+
+            // Ask user to pick a folder (Downloads folder recommended)
+            const permissions = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
+
+            if (!permissions.granted) {
+                Alert.alert("Permission required", "Please allow folder access to save the file.");
+                return;
+            }
+
+            const folderUri = permissions.directoryUri;
+
+            // Download file to cache first
+            const fileName = fileUrl.split('/').pop();
+            const tempFileUri = FileSystem.cacheDirectory + fileName;
+
+            const downloaded = await FileSystem.downloadAsync(fileUrl, tempFileUri);
+
+            // Create file directly in selected folder
+            await FileSystem.StorageAccessFramework.createFileAsync(
+                folderUri,
+                fileName,
+                "application/pdf" // Or correct mime type
+            ).then(async (fileUri) => {
+                const base64 = await FileSystem.readAsStringAsync(downloaded.uri, {
+                    encoding: FileSystem.EncodingType.Base64
+                });
+
+                await FileSystem.writeAsStringAsync(fileUri, base64, {
+                    encoding: FileSystem.EncodingType.Base64
+                });
+            });
+
+            Alert.alert("Success", "File downloaded successfully!");
+
+        } catch (error) {
+            console.error("Download failed:", error);
+            Alert.alert("Error", "Failed to download LR file");
+        }
+    };
+
+
     const renderOrderItem = ({ item }) => (
         <Card style={styles.orderCard}>
             <Card.Content>
@@ -85,7 +142,7 @@ const OrdersScreen = ({ navigation }) => {
                         <Text style={styles.orderId}>Order No : {item.orderNumber}</Text>
                         <Text style={styles.orderDate}>
 
-                             {format(new Date(item.createdAt), "dd-MMM-yyyy, hh:mm a")}
+                            {format(new Date(item.createdAt), "dd-MMM-yyyy, hh:mm a")}
                         </Text>
                     </View>
                     <View style={styles.statusContainer}>
@@ -98,11 +155,37 @@ const OrdersScreen = ({ navigation }) => {
                             {item.orderStatus}
                         </Text>
                     </View>
+
+                    {(item.orderStatus === "DISPATCHED" || item.orderStatus === "DELIVERED") && (
+
+                        <Menu
+                            visible={menuVisible[item.id] || false}
+                            onDismiss={() => setMenuVisible({ ...menuVisible, [item.id]: false })}
+                            anchor={
+                                <IconButton
+                                    icon="dots-vertical"
+                                    onPress={() => setMenuVisible({ ...menuVisible, [item.id]: true })}
+                                />
+                            }
+                        >
+                            <Menu.Item
+                                onPress={() => {
+                                    setMenuVisible({ ...menuVisible, [item.id]: false });
+                                    downloadLRFile(`${URL_BASE}/${item.LRfile}`);
+                                }}
+                                title="Download LR"
+                                leadingIcon="download"
+                            />
+
+
+                        </Menu>
+                    )}
+
                 </View>
 
                 <View style={styles.orderDetails}>
                     <Text style={styles.productName} numberOfLines={2}>
-                        {item.product  !== null ? item.product.name : 'Product Name'}
+                        {item.product !== null ? item.product.name : 'Product Name'}
                     </Text>
                     <Text style={styles.orderQuantity}>
                         Quantity: {item.quantity}
@@ -140,6 +223,8 @@ const OrdersScreen = ({ navigation }) => {
                             Cancel
                         </Button>
                     )}
+
+
                 </View>
             </Card.Content>
         </Card>
@@ -158,9 +243,9 @@ const OrdersScreen = ({ navigation }) => {
 
     const cancelOrder = async (orderId) => {
         try {
-            const token =  await AsyncStorage.getItem(STORAGE_KEYS.TOKEN);
-       
-            await axios.put(`${API_BASE}/orders/update/${orderId}`, {status:"CANCELLED"}, {
+            const token = await AsyncStorage.getItem(STORAGE_KEYS.TOKEN);
+
+            await axios.put(`${API_BASE}/orders/update/${orderId}`, { status: "CANCELLED" }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             fetchOrders(); // Refresh the list
