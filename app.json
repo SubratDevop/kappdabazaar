@@ -34,7 +34,7 @@
     },
     "android": {
       "package": "com.app.kapdabazaar",
-      "versionCode": 32,
+      "versionCode": 34,
       "useAndroidPhotoPicker": true,
       "permissions": [
         "CAMERA",

@@ -62,7 +62,7 @@ export default function UserStack() {
         <Stack.Screen
           name="Search"
           component={SearchScreenWrapper}
-          options={{ headerShown: false }}
+          options={{ headerShown: true }}
         />
         <Stack.Screen
           name="QuantitySelection"

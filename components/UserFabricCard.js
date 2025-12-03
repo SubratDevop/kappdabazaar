@@ -80,7 +80,9 @@ const UserFabricCard = ({ fabric, navigation }) => {
 
             </View>
         </TouchableOpacity>
-    );
+   
+
+);
 };
 
 const styles = StyleSheet.create({

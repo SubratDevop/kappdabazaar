@@ -1,6 +1,8 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
+
 import {
   Alert,
   RefreshControl,
@@ -40,17 +42,20 @@ const EventsScreen = ({ route, navigation }) => {
 
   // Create event form
   const [newEvent, setNewEvent] = useState({
-    title: "",
+    event_name: "",
     description: "",
     category: "textile_expo",
-    startDate: "",
-    endDate: "",
-    location: "",
-    maxParticipants: "",
-    registrationFee: "",
+    start_date: "",
+    end_date: "",
+    location_city: "",
+    location_address: "",
+    created_by: 1
   });
 
   const { authInfo } = useAuthStore();
+  const [showStartPicker, setShowStartPicker] = useState(false);
+  const [showEndPicker, setShowEndPicker] = useState(false);
+
 
   const tabs = ["Events"];
   const statusFilters = [
@@ -74,6 +79,8 @@ const EventsScreen = ({ route, navigation }) => {
     fetchEventData();
   }, [selectedTab]);
 
+
+  // get all events
   const fetchEventData = async () => {
     try {
       setLoading(true);
@@ -81,10 +88,11 @@ const EventsScreen = ({ route, navigation }) => {
       const headers = { Authorization: `Bearer ${token}` };
       if (selectedTab === "Events") {
         try {
-          const eventsResponse = await axios.get(`${API_BASE}/admin/events`, {
+          const eventsResponse = await axios.get(`${API_BASE}/superadmin/events`, {
             headers,
           });
-          setEvents(eventsResponse.data || []);
+          console.log("ALL EVENTS :::::",eventsResponse.data.data.events);
+          setEvents(eventsResponse.data.data.events || []);
         } catch (error) {
           // Fallback events data
           setEvents([
@@ -215,29 +223,35 @@ const EventsScreen = ({ route, navigation }) => {
     return matchesSearch && matchesStatus && matchesCategory;
   });
 
+
+  // create event
   const handleCreateEvent = async () => {
+
     try {
       const token = authInfo?.token;
       const headers = { Authorization: `Bearer ${token}` };
 
+      console.log("EVENT TOKEN", token);
+
       const eventData = {
-        ...newEvent,
-        maxParticipants: parseInt(newEvent.maxParticipants),
-        registrationFee: parseFloat(newEvent.registrationFee),
+        ...newEvent
       };
 
-      await axios.post(`${API_BASE}/admin/events`, eventData, { headers });
+      console.log("EVENT DATA", eventData);
+
+
+      await axios.post(`${API_BASE}/superadmin/events`, eventData, { headers });
 
       setCreateEventModal(false);
       setNewEvent({
-        title: "",
+        event_name: "",
         description: "",
         category: "textile_expo",
-        startDate: "",
-        endDate: "",
-        location: "",
-        maxParticipants: "",
-        registrationFee: "",
+        start_date: "",
+        end_date: "",
+        location_city: "",
+        location_address: "",
+        created_by: 1
       });
 
       Alert.alert("Success", "Event created successfully!");
@@ -315,13 +329,13 @@ const EventsScreen = ({ route, navigation }) => {
                       style={styles.categoryIcon}
                     />
                     <View style={styles.eventTitleText}>
-                      <Text style={styles.eventTitle}>{event.title}</Text>
+                      <Text style={styles.eventTitle}>{event.event_name}</Text>
                       <Text style={styles.eventCategory}>
-                        {event.category.replace("_", " ").toUpperCase()}
+                        {event.category}
                       </Text>
                     </View>
                   </View>
-                  <View
+                  {/* <View
                     style={[
                       styles.statusBadge,
                       { backgroundColor: getStatusColor(event.status) },
@@ -333,9 +347,9 @@ const EventsScreen = ({ route, navigation }) => {
                       color="#fff"
                     />
                     <Text style={styles.statusText}>
-                      {event.status.toUpperCase()}
+                      {event.status}
                     </Text>
-                  </View>
+                  </View> */}
                 </View>
 
                 <Text style={styles.eventDescription} numberOfLines={2}>
@@ -351,16 +365,17 @@ const EventsScreen = ({ route, navigation }) => {
                       size={16}
                       color="#6B7280"
                     />
-                    <Text style={styles.detailText}>{event.location}</Text>
+                    <Text style={styles.detailText}>{event.location_city}</Text>
+                    <Text style={styles.detailText}>{event.location_address}</Text>
                   </View>
                   <View style={styles.detailRow}>
                     <MaterialIcons name="event" size={16} color="#6B7280" />
                     <Text style={styles.detailText}>
-                      {new Date(event.startDate).toLocaleDateString()} -{" "}
-                      {new Date(event.endDate).toLocaleDateString()}
+                      {new Date(event.start_date).toLocaleDateString()} -{" "}
+                      {new Date(event.end_date).toLocaleDateString()}
                     </Text>
                   </View>
-                  <View style={styles.detailRow}>
+                  {/* <View style={styles.detailRow}>
                     <MaterialIcons
                       name="currency-rupee"
                       size={16}
@@ -369,10 +384,10 @@ const EventsScreen = ({ route, navigation }) => {
                     <Text style={styles.detailText}>
                       ₹{event.registrationFee}
                     </Text>
-                  </View>
+                  </View> */}
                 </View>
 
-                {authInfo.userRole === "superadmin" && (
+                {/* {authInfo.userRole === "superadmin" && (
                   <View style={styles.eventActions}>
                     <TouchableOpacity style={styles.actionButtonSmall}>
                       <MaterialIcons
@@ -403,7 +418,7 @@ const EventsScreen = ({ route, navigation }) => {
                 )}
 
 
-
+ */}
 
               </Card.Content>
             </Card>
@@ -432,7 +447,7 @@ const EventsScreen = ({ route, navigation }) => {
             <TextInput
               label="Event Title"
               value={newEvent.title}
-              onChangeText={(text) => setNewEvent({ ...newEvent, title: text })}
+              onChangeText={(text) => setNewEvent({ ...newEvent, event_name: text })}
               style={styles.input}
               mode="outlined"
             />
@@ -449,40 +464,74 @@ const EventsScreen = ({ route, navigation }) => {
               numberOfLines={3}
             />
 
-            {/*<DateTimePickerModal
-              label="Start Date"
-              value={newEvent.startDate}
-              onChange={(date) => setNewEvent({ ...newEvent, startDate: date })}
+            {/* Start Date */}
+            <TouchableOpacity
+              onPress={() => setShowStartPicker(true)}
               style={styles.input}
-              mode="datetime"
-              display="spinner"
-              is24Hour={true}
-              onConfirm={(date) => setNewEvent({ ...newEvent, startDate: date })}
-              onCancel={() => setNewEvent({ ...newEvent, startDate: "" })}
-            />
+            >
+              <TextInput
+                label="Start Date"
+                value={newEvent.start_date ? new Date(newEvent.start_date).toLocaleString() : ""}
+                editable={false}
+                mode="outlined"
+              />
+            </TouchableOpacity>
 
             <DateTimePickerModal
-              label="End Date"
-              value={newEvent.endDate}
-              onChange={(date) => setNewEvent({ ...newEvent, endDate: date })}
-              style={styles.input}
+              isVisible={showStartPicker}
               mode="datetime"
-              display="default"
-              is24Hour={true}
-              onConfirm={(date) => setNewEvent({ ...newEvent, endDate: date })}
-              onCancel={() => setNewEvent({ ...newEvent, endDate: "" })}
-              />*/}
+              onConfirm={(date) => {
+                setShowStartPicker(false);
+                setNewEvent({ ...newEvent, start_date: date.toISOString() });
+              }}
+              onCancel={() => setShowStartPicker(false)}
+            />
+
+
+            {/* End Date */}
+            <TouchableOpacity
+              onPress={() => setShowEndPicker(true)}
+              style={styles.input}
+            >
+              <TextInput
+                label="End Date"
+                value={newEvent.end_date ? new Date(newEvent.end_date).toLocaleString() : ""}
+                editable={false}
+                mode="outlined"
+              />
+            </TouchableOpacity>
+
+            <DateTimePickerModal
+              isVisible={showEndPicker}
+              mode="datetime"
+              onConfirm={(date) => {
+                setShowEndPicker(false);
+                setNewEvent({ ...newEvent, end_date: date.toISOString() });
+              }}
+              onCancel={() => setShowEndPicker(false)}
+            />
+
 
             <TextInput
-              label="Location"
-              value={newEvent.location}
+              label="Location City"
+              value={newEvent.location_city}
               onChangeText={(text) =>
-                setNewEvent({ ...newEvent, location: text })
+                setNewEvent({ ...newEvent, location_city: text })
               }
               style={styles.input}
               mode="outlined"
             />
 
+            <TextInput
+              label="Location Address"
+              value={newEvent.location_address}
+              onChangeText={(text) =>
+                setNewEvent({ ...newEvent, location_address: text })
+              }
+              style={styles.input}
+              mode="outlined"
+            />
+            {/* 
             <TextInput
               label="Registration Fee (₹)"
               value={newEvent.registrationFee}
@@ -492,7 +541,7 @@ const EventsScreen = ({ route, navigation }) => {
               style={styles.input}
               mode="outlined"
               keyboardType="numeric"
-            />
+            /> */}
 
             <View style={styles.modalActions}>
               <Button
