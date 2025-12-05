@@ -64,7 +64,7 @@ const LoginScreen = ({ route }) => {
                         <View style={styles.passwordContainer}>
                             <View style={styles.icon}>
                                 {/* <MailPlusIcon size={24}  color={colors.navyBlue} /> */}
-                                <Fontisto name="email" size={24}  color={colors.navyBlue} />
+                                <Fontisto name="email" size={24} color={colors.navyBlue} />
                             </View>
                             <TextInput
                                 mode="flat"
@@ -82,7 +82,7 @@ const LoginScreen = ({ route }) => {
                         <Text style={styles.label}>Password</Text>
                         <View style={styles.passwordContainer}>
                             <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.icon}>
-                                {showPassword ? <Feather name="eye" size={24}  color={colors.navyBlue} /> : <Feather name="eye-off" size={24}  color={colors.navyBlue} />}
+                                {showPassword ? <Feather name="eye" size={24} color={colors.navyBlue} /> : <Feather name="eye-off" size={24} color={colors.navyBlue} />}
                             </TouchableOpacity>
                             <TextInput
                                 mode="flat"
@@ -98,7 +98,7 @@ const LoginScreen = ({ route }) => {
                     {/* Register Button Link */}
                     {role !== "superadmin" && (
                         <View style={{ flexDirection: "row", marginTop: 10 }}>
-                            <Text>Don't have an account? </Text>
+                            <Text style={{ color: "#454343ff" }} >Don't have an account? </Text>
                             <Text
                                 onPress={() => navigation.replace("SignIn", { role: role })}
                                 style={{ color: "#003285", fontWeight: "500", textDecorationLine: "underline" }}

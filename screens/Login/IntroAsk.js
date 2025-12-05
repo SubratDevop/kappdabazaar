@@ -127,6 +127,7 @@ const styles = StyleSheet.create({
     roleQuestion: {
         flexDirection: 'row',
         alignItems: 'center',
+        color: "#000000ff"
     },
     roleQuestionText: {
         fontSize: 19,
